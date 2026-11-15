@@ -8,25 +8,48 @@
   <title>找不到这一页 · Yihua Liu</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <style>
-    :root { color-scheme: light; }
+    :root {
+      --pink: #FDCDCD;
+      --paper: #FFF1EE;
+      --paper-bottom: #FFE4DE;
+      --ink: #3B2424;
+      --link: #A33D52;
+      --link-hover: #9C4338;
+      --mark: #D07080;
+      color-scheme: light;
+    }
     body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
       margin: 0;
-      background: #FFF7F6;
-      color: #261C1C;
+      background: linear-gradient(to bottom, var(--paper), var(--paper-bottom));
+      background-attachment: fixed;
+      color: var(--ink);
       font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "SimSun", serif;
       font-size: 1.125rem;
       line-height: 1.85;
     }
-    header { background: #FDCDCD; }
+    header, footer { background: var(--pink); }
     .inner { width: min(42rem, 100%); margin: 0 auto; padding: 1.05rem 1.5rem; }
-    main.inner { padding-top: 3.5rem; padding-bottom: 2.5rem; }
-    a { color: #8E2929; }
-    a:hover { color: #6F1C1C; }
+    main.inner { flex: 1; padding-top: 3.5rem; padding-bottom: 2.5rem; }
+    a { color: var(--link); }
+    a:hover { color: var(--link-hover); }
     h1 { font-size: 1.75rem; font-weight: 600; line-height: 1.4; margin: 0 0 0.75rem; }
+    h1::after {
+      content: "";
+      display: block;
+      width: 2.15rem;
+      height: 2px;
+      margin-top: 0.4rem;
+      background: var(--mark);
+    }
     p { margin: 0 0 1.2em; }
-    .name { color: #261C1C; font-weight: 600; text-decoration: none; }
-    footer.inner { padding-top: 0; padding-bottom: 4rem; color: #5C4848; font-size: 0.98rem; }
-    footer.inner p { margin: 0; }
+    .name { color: var(--ink); font-weight: 600; text-decoration: none; }
+    .name:hover { color: var(--link-hover); }
+    footer .inner { padding-bottom: 1.15rem; }
+    footer p { margin: 0; }
+    footer a { color: var(--link-hover); }
   </style>
 </head>
 <body>
@@ -40,8 +63,10 @@
     <p>这个地址没有对应的页面。</p>
     <p><a id="home" href="/personal-website/">回首页</a></p>
   </main>
-  <footer class="inner">
-    <p>© 2026 Yihua Liu. 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
+  <footer>
+    <div class="inner">
+      <p>© 2026 Yihua Liu. 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
+    </div>
   </footer>
   <script>
     (function () {

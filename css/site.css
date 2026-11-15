@@ -1,22 +1,25 @@
-/* Same-hue warm pink, derived from #FDCDCD.
-   primary #FDCDCD
-   button hover / stronger wash #F0A8A8
-   page #FFF7F6
-   secondary surface #F8E6E6
-   text #261C1C
-   secondary text #5C4848
-   link #8E2929
-   link hover #6F1C1C
+/* Warm blush palette. Main color stays #FDCDCD.
+   paper top #FFF1EE, paper bottom #FFE4DE
+   band #FDCDCD, wash #F8D9D4, surface #F6D5CF
+   ink #3B2424 — 11.9:1 on the page, 10.1:1 on the band
+   link #A33D52 — 5.2:1 on the page bottom, 4.7:1 on the wash
+   link hover #9C4338 — 5.3:1 on the page, 4.8:1 on the wash, 4.5:1 on the band
+   muted #7A4550 — 6.2:1 on the page, 5.3:1 on the band
+   #B5485A is the same rose, but it falls under 4.5:1 once the page is this pink.
 */
 :root {
   --pink: #FDCDCD;
   --pink-deep: #F0A8A8;
-  --paper: #FFF7F6;
-  --surface: #F8E6E6;
-  --ink: #261C1C;
-  --muted: #5C4848;
-  --link: #8E2929;
-  --link-hover: #6F1C1C;
+  --paper: #FFF1EE;
+  --paper-bottom: #FFE4DE;
+  --wash: #F8D9D4;
+  --surface: #F6D5CF;
+  --ink: #3B2424;
+  --muted: #7A4550;
+  --link: #A33D52;
+  --link-hover: #9C4338;
+  --mark: #D07080;
+  --rule: #D07080;
   color-scheme: light;
 }
 
@@ -28,11 +31,16 @@
 
 html {
   scroll-behavior: auto;
+  background: var(--paper-bottom);
 }
 
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   margin: 0;
-  background: var(--paper);
+  background: linear-gradient(to bottom, var(--paper), var(--paper-bottom));
+  background-attachment: fixed;
   color: var(--ink);
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "SimSun", serif;
   font-size: 1.125rem;
@@ -78,7 +86,8 @@ a:hover {
   transform: none;
 }
 
-.site-header {
+.site-header,
+.site-footer {
   background: var(--pink);
 }
 
@@ -112,7 +121,7 @@ a:hover {
 
 .site-header a:hover,
 .site-header a[aria-current="page"] {
-  color: var(--link);
+  color: var(--link-hover);
 }
 
 .site-header a[aria-current="page"] {
@@ -131,6 +140,7 @@ nav {
 }
 
 main.wrap {
+  flex: 1;
   padding-top: 3.5rem;
   padding-bottom: 2.5rem;
 }
@@ -156,6 +166,16 @@ h2 {
 h3 {
   margin: 1.9rem 0 0.55rem;
   font-size: 1.12rem;
+}
+
+h1::after,
+h2::after {
+  content: "";
+  display: block;
+  width: 2.15rem;
+  height: 2px;
+  margin-top: 0.4rem;
+  background: var(--mark);
 }
 
 .deck {
@@ -184,15 +204,25 @@ h3 {
   padding-left: 1.25em;
 }
 
+.prose li::marker {
+  color: var(--link);
+}
+
 .prose li + li {
   margin-top: 0.35em;
 }
 
 .prose blockquote {
   margin: 1.4em 0;
-  padding-left: 1rem;
-  border-left: 3px solid var(--pink);
+  padding: 0.15em 0 0.15em 1rem;
+  border-left: 3px solid var(--mark);
   color: var(--muted);
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 1.8rem 0;
 }
 
 .prose a,
@@ -204,7 +234,8 @@ h3 {
 }
 
 .prose :not(pre) > code {
-  background: var(--pink);
+  background: var(--wash);
+  color: var(--ink);
   padding: 0.05em 0.32em;
   font-size: 0.88em;
 }
@@ -214,6 +245,7 @@ h3 {
   padding: 1rem 1.05rem;
   overflow-x: auto;
   background: var(--surface);
+  color: var(--ink);
   font-size: 0.92rem;
   line-height: 1.65;
 }
@@ -235,12 +267,17 @@ pre {
   max-width: 100%;
 }
 
+.prose .katex {
+  color: var(--ink);
+}
+
 .prose .katex-display {
   max-width: 100%;
   margin: 0.35em 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.15em 0 0.4em;
+  padding: 0.55em 0.75em 0.7em;
+  background: var(--wash);
 }
 
 .prose p:has(> .katex-display:only-child) {
@@ -254,13 +291,20 @@ pre {
 }
 
 .index li + li {
-  margin-top: 1.9rem;
+  margin-top: 0.85rem;
 }
 
 .index a {
   display: block;
+  margin-inline: -0.65rem;
+  padding: 0.45rem 0.65rem;
   color: inherit;
   text-decoration: none;
+}
+
+.index a:hover,
+.index a:focus-visible {
+  background: var(--wash);
 }
 
 .index time {
@@ -302,6 +346,10 @@ pre {
   font-size: 1.22rem;
 }
 
+.project h2::after {
+  content: none;
+}
+
 .meta {
   margin: 0.28rem 0 0.4rem;
   color: var(--muted);
@@ -313,9 +361,17 @@ pre {
 }
 
 .site-footer {
-  padding-bottom: 4rem;
-  color: var(--muted);
+  color: var(--ink);
   font-size: 0.98rem;
+}
+
+.site-footer .wrap {
+  padding-top: 1.05rem;
+  padding-bottom: 1.15rem;
+}
+
+.site-footer a {
+  color: var(--link-hover);
 }
 
 .site-footer p {
@@ -357,9 +413,5 @@ button:focus-visible,
 
   h1 {
     font-size: 1.55rem;
-  }
-
-  .site-footer {
-    padding-bottom: 3rem;
   }
 }
