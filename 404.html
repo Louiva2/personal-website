@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#FDCDCD">
+  <title>找不到这一页 · Yihua Liu</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: light; }
+    body {
+      margin: 0;
+      background: #FFF7F6;
+      color: #261C1C;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "SimSun", serif;
+      font-size: 1.125rem;
+      line-height: 1.85;
+    }
+    header { background: #FDCDCD; }
+    .inner { width: min(42rem, 100%); margin: 0 auto; padding: 1.05rem 1.5rem; }
+    main.inner { padding-top: 3.5rem; padding-bottom: 2.5rem; }
+    a { color: #8E2929; }
+    a:hover { color: #6F1C1C; }
+    h1 { font-size: 1.75rem; font-weight: 600; line-height: 1.4; margin: 0 0 0.75rem; }
+    p { margin: 0 0 1.2em; }
+    .name { color: #261C1C; font-weight: 600; text-decoration: none; }
+    footer.inner { padding-top: 0; padding-bottom: 4rem; color: #5C4848; font-size: 0.98rem; }
+    footer.inner p { margin: 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="name" id="brand" href="/personal-website/">Yihua Liu</a>
+    </div>
+  </header>
+  <main class="inner">
+    <h1>找不到这一页</h1>
+    <p>这个地址没有对应的页面。</p>
+    <p><a id="home" href="/personal-website/">回首页</a></p>
+  </main>
+  <footer class="inner">
+    <p>© 2026 Yihua Liu. 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
+  </footer>
+  <script>
+    (function () {
+      var home = location.pathname.indexOf("/personal-website/") === 0 ? "/personal-website/" : "/";
+      document.getElementById("home").href = home;
+      document.getElementById("brand").href = home;
+    })();
+  </script>
+</body>
+</html>

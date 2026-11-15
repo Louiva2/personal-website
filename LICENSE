@@ -1,0 +1,39 @@
+# License
+
+## 代码与设计 / Code and design
+
+Copyright © 2026 Yihua Liu (Louiva2). All rights reserved.
+
+中文：本仓库中的代码、页面结构、样式与视觉设计（包括配色、版式，以及自行编写的 HTML、CSS、JavaScript）著作权归 Yihua Liu（Louiva2）所有，保留所有权利。
+
+没有授予开源许可。在 GitHub 上查看本仓库，并不表示可以复制、修改、再分发，或把这些代码和设计用到其他项目里。上述使用需要著作权人的书面许可。
+
+English: The code, page structure, styles, and visual design in this repository — including the color palette, layout, and the original HTML, CSS, and JavaScript — are copyright © 2026 Yihua Liu (Louiva2). All rights reserved.
+
+No open-source license is granted. Viewing this repository on GitHub does not grant any right to copy, modify, redistribute, or reuse the code or the design. Those uses require prior written permission from the copyright holder.
+
+## 第三方库 / Third-party libraries
+
+随仓库附带的第三方库仍适用各自的许可证。本文件不改变它们的授权。许可证文本保留在 `assets/` 里：
+
+- KaTeX 0.19.1，包括 `assets/katex/fonts/` 中的字体：MIT License，见 `assets/katex/LICENSE`
+- marked 18.2.0：见 `assets/marked/LICENSE`（Marked 为 MIT；该文件同时包含 Markdown 的声明）
+
+The bundled third-party libraries keep their own licenses. This file does not relicense them. Their notices stay in `assets/`:
+
+- KaTeX 0.19.1, including the fonts in `assets/katex/fonts/`: MIT License, `assets/katex/LICENSE`
+- marked 18.2.0: `assets/marked/LICENSE` (Marked is MIT; that file also includes the Markdown notice)
+
+## 文章 / Article content
+
+`posts/` 目录中的文章内容采用知识共享署名-非商业性使用 4.0 国际许可（CC BY-NC 4.0）：
+
+https://creativecommons.org/licenses/by-nc/4.0/
+
+转载或改编这些文章时，需要注明作者 Yihua Liu，并附上上面的许可证链接；不得用于商业目的。代码与设计不在这项许可之内。简要说明另见 `LICENSE-CONTENT`。
+
+Article content in `posts/` is licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0):
+
+https://creativecommons.org/licenses/by-nc/4.0/
+
+Attribution to Yihua Liu and a link to that license are required. Commercial use is not allowed. The code and design are not covered by this content license. A short statement is also in `LICENSE-CONTENT`.
