@@ -25,12 +25,14 @@ $$
 取正整数 $n$，把 $H_{2^n}$ 按 2 的幂切开：
 
 $$
+\begin{aligned}
 H_{2^n}
-=1+\frac{1}{2}
+&=1+\frac{1}{2}
 +\left(\frac{1}{3}+\frac{1}{4}\right)
-+\left(\frac{1}{5}+\cdots+\frac{1}{8}\right)
-+\cdots
++\left(\frac{1}{5}+\cdots+\frac{1}{8}\right)\\
+&\quad+\cdots
 +\left(\frac{1}{2^{n-1}+1}+\cdots+\frac{1}{2^n}\right).
+\end{aligned}
 $$
 
 除了最前面的 $1$，后面每一段都不小于 $\frac{1}{2}$。

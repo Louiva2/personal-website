@@ -61,6 +61,24 @@
     article.setAttribute("aria-busy", "false");
   }
 
+  // A display formula wider than the column scrolls sideways. Only those get a tab stop,
+  // so the keyboard can scroll them. Widths change once the KaTeX fonts arrive and on resize.
+  function watchWideMath(scope) {
+    const check = () => {
+      for (const box of scope.querySelectorAll(".math-display")) {
+        if (box.scrollWidth > box.clientWidth) box.tabIndex = 0;
+        else box.removeAttribute("tabindex");
+      }
+    };
+    check();
+    if (document.fonts) document.fonts.ready.then(check);
+    let frame = 0;
+    addEventListener("resize", () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(check);
+    });
+  }
+
   async function loadArticle(article) {
     const slug = new URLSearchParams(location.search).get("p") || "";
     if (!/^[a-z0-9-]+$/.test(slug)) {
@@ -104,6 +122,7 @@
       back.append(link);
       article.append(header, prose, back);
       article.setAttribute("aria-busy", "false");
+      watchWideMath(prose);
     } catch (err) {
       showMessage(article, "这篇笔记没有加载成功。请用本地静态服务器打开站点，不要直接双击 HTML 文件。");
     }

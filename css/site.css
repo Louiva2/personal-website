@@ -20,6 +20,7 @@
   --link-hover: #9C4338;
   --mark: #D07080;
   --rule: #D07080;
+  --shade: rgba(122, 69, 80, 0.3);
   color-scheme: light;
 }
 
@@ -261,27 +262,34 @@ pre {
   font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
-.prose p:has(> .katex-display) {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  max-width: 100%;
-}
-
 .prose .katex {
   color: var(--ink);
 }
 
-.prose .katex-display {
-  max-width: 100%;
-  margin: 0.35em 0;
+/* Display math. A wide formula scrolls sideways, and phones and macOS hide the scrollbar,
+   so the edges carry a cue: the shadows stay at the box edges while wash-colored covers
+   scroll with the formula. A shadow shows only where there is more to scroll to. */
+.prose .math-display {
+  margin: 1.35em 0;
+  padding: 0.55em 0.75em 0.7em;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.55em 0.75em 0.7em;
-  background: var(--wash);
+  background:
+    linear-gradient(var(--wash), var(--wash)) left / 1.25em 100% no-repeat local,
+    linear-gradient(var(--wash), var(--wash)) right / 1.25em 100% no-repeat local,
+    linear-gradient(to right, var(--shade), transparent) left / 0.8em 100% no-repeat scroll,
+    linear-gradient(to left, var(--shade), transparent) right / 0.8em 100% no-repeat scroll,
+    var(--wash);
 }
 
-.prose p:has(> .katex-display:only-child) {
-  margin: 1.25em 0;
+/* site.js makes only the formulas that overflow focusable, so they can be scrolled with the keyboard. */
+.prose .math-display:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+}
+
+.prose .math-display .katex-display {
+  margin: 0;
 }
 
 .index {
