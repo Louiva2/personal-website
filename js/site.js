@@ -95,6 +95,7 @@
   }
 
   async function loadArticle(article) {
+    // blog/post.html checks the same rule before its early fetch; keep the two identical.
     const slug = new URLSearchParams(location.search).get("p") || "";
     if (!/^[a-z0-9-]+$/.test(slug)) {
       showNotFound(article);
@@ -106,7 +107,8 @@
     }
     article.setAttribute("aria-busy", "true");
     try {
-      const response = await fetch(`../posts/${slug}.md`);
+      const early = root.SITE_POST_FETCH;
+      const response = await (early && early.slug === slug ? early.response : fetch(`../posts/${slug}.md`));
       if (response.status === 404) {
         showNotFound(article);
         return;
