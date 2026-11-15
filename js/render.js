@@ -25,6 +25,8 @@
 
   function rewriteLinks(html) {
     return html.replace(/href="([^"]*)"/g, (full, href) => {
+      // Only links to other posts. Anything with a scheme (https:, mailto:) or a host (//) stays.
+      if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href)) return full;
       const match = href.match(/(?:^|\/)([a-z0-9-]+)\.md(#[^"]*)?$/);
       if (!match) return full;
       return `href="post.html?p=${match[1]}${match[2] || ""}"`;
@@ -49,8 +51,11 @@
     };
 
     let src = String(markdown).replace(/\r\n/g, "\n");
-    src = src.replace(/```([^\n`]*)\n([\s\S]*?)```/g, (_, lang, code) => {
-      return take({ type: "code", lang: lang.trim(), code: code.replace(/\n$/, "") });
+    // Fenced code (``` or ~~~) is set aside first, so nothing inside it is read as math.
+    // As in CommonMark, the fence starts a line and is closed by a line of at least as many
+    // of the same character; a mid-line ~~~ (好的~~~) is just text.
+    src = src.replace(/^([ \t]*)((`|~)\3{2,})([^\n`]*)\n([\s\S]*?)^[ \t]*\2\3*[ \t]*$/gm, (_, indent, fence, char, lang, code) => {
+      return indent + take({ type: "code", lang: lang.trim(), code: code.replace(/\n$/, "") });
     });
     src = src.replace(/`([^`\n]+)`/g, (_, code) => take({ type: "inline-code", code }));
     src = src.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {

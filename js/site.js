@@ -46,8 +46,11 @@
     }
   }
 
-  function showMessage(article, text) {
+  function showMessage(article, heading, text) {
+    document.title = `${heading} · Yihua Liu`;
     article.replaceChildren();
+    const title = document.createElement("h1");
+    title.textContent = heading;
     const paragraph = document.createElement("p");
     paragraph.className = "deck";
     paragraph.textContent = text;
@@ -57,8 +60,20 @@
     link.href = "./";
     link.textContent = "返回笔记";
     back.append(link);
-    article.append(paragraph, back);
+    article.append(title, paragraph, back);
     article.setAttribute("aria-busy", "false");
+  }
+
+  function showNotFound(article) {
+    showMessage(article, "找不到这篇笔记", "这个地址没有对应的笔记。");
+  }
+
+  function showLoadError(article, reason) {
+    // fetch() cannot read file:// pages, so opening the HTML directly always ends up here.
+    const hint = location.protocol === "file:"
+      ? "请用本地静态服务器打开站点，不要直接双击 HTML 文件。"
+      : "请稍后刷新再试。";
+    showMessage(article, "加载失败", reason + hint);
   }
 
   // A display formula wider than the column scrolls sideways. Only those get a tab stop,
@@ -82,16 +97,20 @@
   async function loadArticle(article) {
     const slug = new URLSearchParams(location.search).get("p") || "";
     if (!/^[a-z0-9-]+$/.test(slug)) {
-      showMessage(article, "没有这篇笔记。");
+      showNotFound(article);
       return;
     }
     if (typeof root.renderMarkdown !== "function" || typeof root.splitFrontMatter !== "function") {
-      showMessage(article, "页面脚本没有载入完整。");
+      showLoadError(article, "页面脚本没有载入完整。");
       return;
     }
     article.setAttribute("aria-busy", "true");
     try {
       const response = await fetch(`../posts/${slug}.md`);
+      if (response.status === 404) {
+        showNotFound(article);
+        return;
+      }
       if (!response.ok) throw new Error(String(response.status));
       const raw = await response.text();
       const { meta, body } = root.splitFrontMatter(raw);
@@ -124,7 +143,7 @@
       article.setAttribute("aria-busy", "false");
       watchWideMath(prose);
     } catch (err) {
-      showMessage(article, "这篇笔记没有加载成功。请用本地静态服务器打开站点，不要直接双击 HTML 文件。");
+      showLoadError(article, "这篇笔记没有加载成功。");
     }
   }
 
