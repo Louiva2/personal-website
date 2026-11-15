@@ -30,4 +30,4 @@ summary: 列表页上的一两句话。
 ---
 ```
 
-然后在 `js/posts.js` 里登记。列表按日期从新到旧排列。本地预览和 GitHub Pages 的开法写在仓库 README 里。
+然后在 `js/posts.js` 里登记，再运行 `node tools/build-posts.mjs` 给它生成单独的页面。列表按日期从新到旧排列。本地预览和 GitHub Pages 的开法写在仓库 README 里。
