@@ -3,9 +3,19 @@
    band #FDCDCD, wash #F8D9D4, surface #F6D5CF
    ink #3B2424 — 11.9:1 on the page, 10.1:1 on the band
    link #A33D52 — 5.2:1 on the page bottom, 4.7:1 on the wash
-   link hover #9C4338 — 5.3:1 on the page, 4.8:1 on the wash, 4.5:1 on the band
+   link hover #8A3045 — 6.7:1 on the page, 6.1:1 on the wash, 5.7:1 on the band
    muted #7A4550 — 6.2:1 on the page, 5.3:1 on the band
    #B5485A is the same rose, but it falls under 4.5:1 once the page is this pink.
+
+   Dark (prefers-color-scheme: dark): a deep wine page, and #FDCDCD stays as the accent
+   for the active nav, link hover, heading marks, selection, and skip link.
+   paper top #2B171C, paper bottom #211014
+   band #471F28, wash #3B2127, surface #331E23
+   ink #F8E0DD — 13.4:1 on the page, 11.2:1 on the band, 11.7:1 on the wash
+   link #EB8EA1 — 7.2:1 on the page, 6.0:1 on the band, 6.2:1 on the wash; also the focus ring
+   link hover #FDCDCD — 11.9:1 on the page, 9.9:1 on the band, 10.3:1 on the wash
+   muted #CEA1AA — 7.5:1 on the page, 6.2:1 on the band, 6.5:1 on the wash
+   text on #FDCDCD (selection, skip link) #211014 — 12.9:1
 */
 :root {
   --pink: #FDCDCD;
@@ -17,11 +27,31 @@
   --ink: #3B2424;
   --muted: #7A4550;
   --link: #A33D52;
-  --link-hover: #9C4338;
+  --link-hover: #8A3045;
   --mark: #D07080;
   --rule: #D07080;
+  --band: var(--pink);
+  --on-pink: var(--ink);
   --shade: rgba(122, 69, 80, 0.3);
-  color-scheme: light;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #2B171C;
+    --paper-bottom: #211014;
+    --band: #471F28;
+    --wash: #3B2127;
+    --surface: #331E23;
+    --ink: #F8E0DD;
+    --muted: #CEA1AA;
+    --link: #EB8EA1;
+    --link-hover: #FDCDCD;
+    --mark: #FDCDCD;
+    --rule: #A2495B;
+    --on-pink: #211014;
+    --shade: rgba(0, 0, 0, 0.45);
+  }
 }
 
 *,
@@ -51,7 +81,7 @@ body {
 
 ::selection {
   background: var(--pink);
-  color: var(--ink);
+  color: var(--on-pink);
 }
 
 :focus {
@@ -78,7 +108,7 @@ a:hover {
   top: 0;
   transform: translateY(-120%);
   background: var(--pink);
-  color: var(--ink);
+  color: var(--on-pink);
   padding: 0.35rem 0.7rem;
   z-index: 2;
 }
@@ -89,12 +119,12 @@ a:hover {
 
 .site-header,
 .site-footer {
-  background: var(--pink);
+  background: var(--band);
 }
 
 .site-header ::selection {
   background: var(--pink-deep);
-  color: var(--ink);
+  color: var(--on-pink);
 }
 
 .header-inner,
@@ -389,7 +419,7 @@ pre {
 button,
 .button {
   font: inherit;
-  color: var(--ink);
+  color: var(--on-pink);
   background: var(--pink);
   border: 0;
   padding: 0.45rem 0.9rem;
@@ -401,7 +431,7 @@ button:hover,
 button:focus-visible,
 .button:focus-visible {
   background: var(--pink-deep);
-  color: var(--ink);
+  color: var(--on-pink);
 }
 
 .math-fallback {

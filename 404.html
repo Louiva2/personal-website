@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#FDCDCD">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FDCDCD" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#471F28" media="(prefers-color-scheme: dark)">
   <title>找不到这一页 · Yihua Liu</title>
   <link rel="icon" href="/personal-website/favicon.svg" type="image/svg+xml" data-path="favicon.svg">
   <style>
@@ -14,9 +15,22 @@
       --paper-bottom: #FFE4DE;
       --ink: #3B2424;
       --link: #A33D52;
-      --link-hover: #9C4338;
+      --link-hover: #8A3045;
       --mark: #D07080;
-      color-scheme: light;
+      --band: var(--pink);
+      color-scheme: light dark;
+    }
+    /* Same dark palette as css/site.css. */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #2B171C;
+        --paper-bottom: #211014;
+        --band: #471F28;
+        --ink: #F8E0DD;
+        --link: #EB8EA1;
+        --link-hover: #FDCDCD;
+        --mark: #FDCDCD;
+      }
     }
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -31,7 +45,7 @@
       font-size: 1.125rem;
       line-height: 1.85;
     }
-    header, footer { background: var(--pink); }
+    header, footer { background: var(--band); }
     .inner { width: min(42rem, 100%); margin: 0 auto; padding: 1.05rem 1.5rem; }
     main.inner { flex: 1; padding-top: 3.5rem; padding-bottom: 2.5rem; }
     a { color: var(--link); }
