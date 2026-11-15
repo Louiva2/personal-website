@@ -39,19 +39,14 @@ python3 -m http.server 8080
 
 ## 加一篇笔记
 
-1. 在 `posts/` 新建 `your-slug.md`。文件名只用小写字母、数字和连字符。开头写成：
-
-```yaml
----
-title: 笔记标题
-date: 2026-11-15
-summary: 列表页上的一两句话。
----
-```
-
-2. 在 `js/posts.js` 的 `SITE_POSTS` 里加一条，`slug` 与文件名（不含 `.md`）一致。
+1. 在 `posts/` 写 `your-slug.md`。文件名只用小写字母、数字和连字符。
+2. 在 `js/posts.js` 的 `SITE_POSTS` 里加一条：`slug`（文件名去掉 `.md`）、`title`、`date`（写成 `2026-11-15`）、`summary`。标题、日期和摘要以这里为准。
+3. 运行 `node tools/build-posts.mjs`（Node 18+，没有依赖），生成 `blog/your-slug/index.html`。
+4. 把这三样一起提交。
 
 列表按 `date` 从新到旧排列。行内公式用一对 `$`，独立成行的公式用一对 `$$`。文章采用 CC BY-NC 4.0，见下面的版权说明。
+
+生成的页面把标题和摘要直接写进 `<title>`、description 和 Open Graph 标签，链接预览不用跑 JavaScript。这些页面里的绝对地址来自脚本里的常量 `BASE_URL`（<https://louiva2.github.io/personal-website/>）；首页、笔记、项目三页的 canonical 和 og:url 是手写的，站点换地址时一起改。加 `--check` 只检查不写入，页面缺失或过期时以非零状态退出。旧链接 `blog/post.html?p=<slug>` 会跳到新地址。
 
 ## 版权
 
@@ -63,7 +58,7 @@ summary: 列表页上的一两句话。
 
 ## English
 
-Static personal site for Yihua Liu (Louiva2). Posts are Markdown files rendered in the browser, with LaTeX via vendored KaTeX. No build step.
+Static personal site for Yihua Liu (Louiva2). Posts are Markdown files rendered in the browser, with LaTeX via vendored KaTeX. Viewing needs no build step. Each post also gets a generated page at `blog/<slug>/` that carries its title and share-preview tags: after adding the Markdown file and its entry in `js/posts.js`, run `node tools/build-posts.mjs` (Node 18+, no dependencies) and commit the output. Their absolute URLs come from `BASE_URL` in that script; the home, notes and projects pages hard-code theirs.
 
 Preview from the repository root:
 

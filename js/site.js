@@ -1,5 +1,7 @@
 (function () {
   const root = globalThis;
+  // This file sits in js/, one level below the site root, wherever the site is served from.
+  const siteRoot = new URL("../", document.currentScript.src);
 
   function formatDate(iso) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
@@ -18,7 +20,7 @@
   }
 
   function renderList(list) {
-    const base = list.getAttribute("data-base") || "post.html?p=";
+    const base = list.getAttribute("data-base") || "./";
     const posts = sortedPosts();
     list.replaceChildren();
     if (!posts.length) {
@@ -30,7 +32,7 @@
     for (const post of posts) {
       const item = document.createElement("li");
       const link = document.createElement("a");
-      link.href = base + encodeURIComponent(post.slug);
+      link.href = `${base}${encodeURIComponent(post.slug)}/`;
       const time = document.createElement("time");
       time.dateTime = post.date;
       time.textContent = formatDate(post.date);
@@ -46,40 +48,90 @@
     }
   }
 
-  function showMessage(article, text) {
+  function showMessage(article, heading, text) {
+    document.title = `${heading} · Yihua Liu`;
     article.replaceChildren();
+    const title = document.createElement("h1");
+    title.textContent = heading;
     const paragraph = document.createElement("p");
     paragraph.className = "deck";
     paragraph.textContent = text;
     const back = document.createElement("p");
     back.className = "back";
     const link = document.createElement("a");
-    link.href = "./";
+    link.href = new URL("blog/", siteRoot).href;
     link.textContent = "返回笔记";
     back.append(link);
-    article.append(paragraph, back);
+    article.append(title, paragraph, back);
     article.setAttribute("aria-busy", "false");
   }
 
+  function showNotFound(article) {
+    showMessage(article, "找不到这篇笔记", "这个地址没有对应的笔记。");
+  }
+
+  function showLoadError(article, reason) {
+    // fetch() cannot read file:// pages, so opening the HTML directly always ends up here.
+    const hint = location.protocol === "file:"
+      ? "请用本地静态服务器打开站点，不要直接双击 HTML 文件。"
+      : "请稍后刷新再试。";
+    showMessage(article, "加载失败", reason + hint);
+  }
+
+  // A display formula wider than the column scrolls sideways. Only those get a tab stop,
+  // so the keyboard can scroll them. Widths change once the KaTeX fonts arrive and on resize.
+  function watchWideMath(scope) {
+    const check = () => {
+      for (const box of scope.querySelectorAll(".math-display")) {
+        if (box.scrollWidth > box.clientWidth) box.tabIndex = 0;
+        else box.removeAttribute("tabindex");
+      }
+    };
+    check();
+    if (document.fonts) document.fonts.ready.then(check);
+    let frame = 0;
+    addEventListener("resize", () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(check);
+    });
+  }
+
   async function loadArticle(article) {
-    const slug = new URLSearchParams(location.search).get("p") || "";
+    // Pages generated under blog/<slug>/ carry their slug. blog/post.html?p=<slug> is the old
+    // address: a known post moves on to its page, anything else gets the not-found message.
+    const fixedSlug = article.getAttribute("data-slug");
+    const slug = fixedSlug || new URLSearchParams(location.search).get("p") || "";
+    // tools/build-posts.mjs applies the same rule; keep the two identical.
     if (!/^[a-z0-9-]+$/.test(slug)) {
-      showMessage(article, "没有这篇笔记。");
+      showNotFound(article);
+      return;
+    }
+    const manifest = (root.SITE_POSTS || []).find((post) => post.slug === slug);
+    if (!fixedSlug) {
+      if (!Array.isArray(root.SITE_POSTS)) showLoadError(article, "页面脚本没有载入完整。");
+      else if (manifest) location.replace(new URL(`blog/${slug}/`, siteRoot).href + location.hash);
+      else showNotFound(article);
       return;
     }
     if (typeof root.renderMarkdown !== "function" || typeof root.splitFrontMatter !== "function") {
-      showMessage(article, "页面脚本没有载入完整。");
+      showLoadError(article, "页面脚本没有载入完整。");
       return;
     }
     article.setAttribute("aria-busy", "true");
     try {
-      const response = await fetch(`../posts/${slug}.md`);
+      const early = root.SITE_POST_FETCH;
+      const response = await (early && early.slug === slug ? early.response : fetch(new URL(`posts/${slug}.md`, siteRoot)));
+      if (response.status === 404) {
+        showNotFound(article);
+        return;
+      }
       if (!response.ok) throw new Error(String(response.status));
       const raw = await response.text();
       const { meta, body } = root.splitFrontMatter(raw);
-      const manifest = (root.SITE_POSTS || []).find((post) => post.slug === slug) || {};
-      const title = meta.title || manifest.title || slug;
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(meta.date || "") ? meta.date : manifest.date || "";
+      // js/posts.js wins over the front matter: the generated <title> and share tags come from it.
+      const info = manifest || {};
+      const title = info.title || meta.title || slug;
+      const date = info.date || (/^\d{4}-\d{2}-\d{2}$/.test(meta.date || "") ? meta.date : "");
       document.title = `${title} · Yihua Liu`;
       article.replaceChildren();
       const header = document.createElement("header");
@@ -99,13 +151,14 @@
       const back = document.createElement("p");
       back.className = "back";
       const link = document.createElement("a");
-      link.href = "./";
+      link.href = new URL("blog/", siteRoot).href;
       link.textContent = "返回笔记";
       back.append(link);
       article.append(header, prose, back);
       article.setAttribute("aria-busy", "false");
+      watchWideMath(prose);
     } catch (err) {
-      showMessage(article, "这篇笔记没有加载成功。请用本地静态服务器打开站点，不要直接双击 HTML 文件。");
+      showLoadError(article, "这篇笔记没有加载成功。");
     }
   }
 

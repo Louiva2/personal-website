@@ -3,10 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#FDCDCD">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FDCDCD" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#471F28" media="(prefers-color-scheme: dark)">
   <title>笔记 · Yihua Liu</title>
   <meta name="description" content="Yihua Liu 的笔记。Markdown 写成，公式用 LaTeX。">
+  <link rel="canonical" href="https://louiva2.github.io/personal-website/blog/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="笔记">
+  <meta property="og:description" content="Yihua Liu 的笔记。Markdown 写成，公式用 LaTeX。">
+  <meta property="og:url" content="https://louiva2.github.io/personal-website/blog/">
+  <meta property="og:site_name" content="Yihua Liu">
+  <meta property="og:locale" content="zh_CN">
+  <meta name="twitter:card" content="summary">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../css/site.css">
 </head>
@@ -25,7 +34,7 @@
   <main id="content" class="wrap">
     <h1>笔记</h1>
     <p class="deck">按日期从新到旧。点进去是一篇 Markdown，公式在浏览器里排版。</p>
-    <ul class="index" data-posts data-base="post.html?p="></ul>
+    <ul class="index" data-posts data-base="./"></ul>
     <noscript>
       <p>笔记列表需要 JavaScript。也可以直接打开 <code>posts/</code> 里的 Markdown。</p>
     </noscript>

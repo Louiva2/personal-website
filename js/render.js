@@ -25,9 +25,12 @@
 
   function rewriteLinks(html) {
     return html.replace(/href="([^"]*)"/g, (full, href) => {
+      // Only links to other posts. Anything with a scheme (https:, mailto:) or a host (//) stays.
+      if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href)) return full;
       const match = href.match(/(?:^|\/)([a-z0-9-]+)\.md(#[^"]*)?$/);
       if (!match) return full;
-      return `href="post.html?p=${match[1]}${match[2] || ""}"`;
+      // Posts live at blog/<slug>/, so another post is a sibling directory.
+      return `href="../${match[1]}/${match[2] || ""}"`;
     });
   }
 
@@ -49,8 +52,11 @@
     };
 
     let src = String(markdown).replace(/\r\n/g, "\n");
-    src = src.replace(/```([^\n`]*)\n([\s\S]*?)```/g, (_, lang, code) => {
-      return take({ type: "code", lang: lang.trim(), code: code.replace(/\n$/, "") });
+    // Fenced code (``` or ~~~) is set aside first, so nothing inside it is read as math.
+    // As in CommonMark, the fence starts a line and is closed by a line of at least as many
+    // of the same character; a mid-line ~~~ (好的~~~) is just text.
+    src = src.replace(/^([ \t]*)((`|~)\3{2,})([^\n`]*)\n([\s\S]*?)^[ \t]*\2\3*[ \t]*$/gm, (_, indent, fence, char, lang, code) => {
+      return indent + take({ type: "code", lang: lang.trim(), code: code.replace(/\n$/, "") });
     });
     src = src.replace(/`([^`\n]+)`/g, (_, code) => take({ type: "inline-code", code }));
     src = src.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {
@@ -78,21 +84,47 @@
       }
       if (token.type === "inline-code") return `<code>${escapeHtml(token.code)}</code>`;
       if (token.type === "math") {
+        let out;
         try {
-          return katexApi.renderToString(token.tex, {
+          out = katexApi.renderToString(token.tex, {
             displayMode: token.display,
             throwOnError: false,
             strict: "ignore",
             trust: false,
           });
         } catch (err) {
-          return `<span class="math-fallback">${escapeHtml(token.tex)}</span>`;
+          out = `<span class="math-fallback">${escapeHtml(token.tex)}</span>`;
         }
+        return token.display ? `<div class="math-display">${out}</div>` : out;
       }
       return "";
     };
 
-    html = html.replace(/<p>\s*%%T(\d+)%%\s*<\/p>/g, (_, id) => renderToken(tokens[Number(id)]));
+    // Code blocks and display math are blocks, and a <p> cannot hold a block. A paragraph
+    // that contains one is cut around it; usually the block is all the paragraph holds.
+    const blockToken = (part) => {
+      const id = /^%%T(\d+)%%$/.exec(part);
+      const token = id && tokens[Number(id[1])];
+      return token && (token.type === "code" || token.display === true) ? token : null;
+    };
+    html = html.replace(/<p>([\s\S]*?)<\/p>/g, (paragraph, inner) => {
+      const parts = inner.split(/(%%T\d+%%)/);
+      if (!parts.some(blockToken)) return paragraph;
+      let out = "";
+      let text = "";
+      for (const part of parts) {
+        const block = blockToken(part);
+        if (!block) {
+          text += part;
+          continue;
+        }
+        if (text.trim()) out += `<p>${text.trim()}</p>`;
+        out += renderToken(block);
+        text = "";
+      }
+      if (text.trim()) out += `<p>${text.trim()}</p>`;
+      return out;
+    });
     html = html.replace(/%%T(\d+)%%/g, (_, id) => renderToken(tokens[Number(id)]));
     return rewriteLinks(html);
   }

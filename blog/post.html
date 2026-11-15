@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#FDCDCD">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FDCDCD" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#471F28" media="(prefers-color-scheme: dark)">
   <title>笔记 · Yihua Liu</title>
   <meta name="description" content="Yihua Liu 的一篇笔记。">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../css/site.css">
-  <link rel="stylesheet" href="../assets/katex/katex.min.css">
 </head>
 <body>
   <a class="skip" href="#content">跳到正文</a>
@@ -24,6 +24,7 @@
     </div>
   </header>
   <main id="content" class="wrap">
+    <!-- The old post address, post.html?p=<slug>. js/site.js forwards known posts to blog/<slug>/. -->
     <article data-article aria-busy="true">
       <p class="deck">正在读这篇笔记…</p>
     </article>
@@ -36,10 +37,7 @@
       <p>© 2026 Yihua Liu. 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
     </div>
   </footer>
-  <script src="../assets/marked/marked.umd.js" defer></script>
-  <script src="../assets/katex/katex.min.js" defer></script>
   <script src="../js/posts.js" defer></script>
-  <script src="../js/render.js" defer></script>
   <script src="../js/site.js" defer></script>
 </body>
 </html>
