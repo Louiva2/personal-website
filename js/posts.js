@@ -1,5 +1,5 @@
-// 笔记目录。新笔记：在 posts/ 加一份 Markdown，再在这里加一条。
-// 页面按 date 从新到旧排列。
+// 笔记目录，标题、日期、摘要以这里为准。新笔记：在 posts/ 加一份 Markdown，在这里加一条，
+// 再运行 node tools/build-posts.mjs 生成 blog/<slug>/。页面按 date 从新到旧排列。
 globalThis.SITE_POSTS = [
   {
     slug: "welcome",

@@ -9,22 +9,7 @@
   <title>笔记 · Yihua Liu</title>
   <meta name="description" content="Yihua Liu 的一篇笔记。">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <script>
-    // Fetch the post now instead of after marked and KaTeX download; js/site.js picks it up.
-    // Same slug rule as js/site.js. Keep the two identical: the rule confines the fetch, and
-    // the HTML rendered from it, to posts/.
-    (function () {
-      var slug = new URLSearchParams(location.search).get("p") || "";
-      if (!/^[a-z0-9-]+$/.test(slug)) return;
-      var response = fetch("../posts/" + slug + ".md");
-      response.catch(function () {});
-      globalThis.SITE_POST_FETCH = { slug: slug, response: response };
-    })();
-  </script>
-  <link rel="preload" href="../assets/katex/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="../assets/katex/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../css/site.css">
-  <link rel="stylesheet" href="../assets/katex/katex.min.css">
 </head>
 <body>
   <a class="skip" href="#content">跳到正文</a>
@@ -39,6 +24,7 @@
     </div>
   </header>
   <main id="content" class="wrap">
+    <!-- The old post address, post.html?p=<slug>. js/site.js forwards known posts to blog/<slug>/. -->
     <article data-article aria-busy="true">
       <p class="deck">正在读这篇笔记…</p>
     </article>
@@ -51,10 +37,7 @@
       <p>© 2026 Yihua Liu. 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
     </div>
   </footer>
-  <script src="../assets/marked/marked.umd.js" defer></script>
-  <script src="../assets/katex/katex.min.js" defer></script>
   <script src="../js/posts.js" defer></script>
-  <script src="../js/render.js" defer></script>
   <script src="../js/site.js" defer></script>
 </body>
 </html>

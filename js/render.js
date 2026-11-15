@@ -29,7 +29,8 @@
       if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href)) return full;
       const match = href.match(/(?:^|\/)([a-z0-9-]+)\.md(#[^"]*)?$/);
       if (!match) return full;
-      return `href="post.html?p=${match[1]}${match[2] || ""}"`;
+      // Posts live at blog/<slug>/, so another post is a sibling directory.
+      return `href="../${match[1]}/${match[2] || ""}"`;
     });
   }
 

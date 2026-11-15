@@ -1,5 +1,7 @@
 (function () {
   const root = globalThis;
+  // This file sits in js/, one level below the site root, wherever the site is served from.
+  const siteRoot = new URL("../", document.currentScript.src);
 
   function formatDate(iso) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
@@ -18,7 +20,7 @@
   }
 
   function renderList(list) {
-    const base = list.getAttribute("data-base") || "post.html?p=";
+    const base = list.getAttribute("data-base") || "./";
     const posts = sortedPosts();
     list.replaceChildren();
     if (!posts.length) {
@@ -30,7 +32,7 @@
     for (const post of posts) {
       const item = document.createElement("li");
       const link = document.createElement("a");
-      link.href = base + encodeURIComponent(post.slug);
+      link.href = `${base}${encodeURIComponent(post.slug)}/`;
       const time = document.createElement("time");
       time.dateTime = post.date;
       time.textContent = formatDate(post.date);
@@ -57,7 +59,7 @@
     const back = document.createElement("p");
     back.className = "back";
     const link = document.createElement("a");
-    link.href = "./";
+    link.href = new URL("blog/", siteRoot).href;
     link.textContent = "返回笔记";
     back.append(link);
     article.append(title, paragraph, back);
@@ -95,10 +97,20 @@
   }
 
   async function loadArticle(article) {
-    // blog/post.html checks the same rule before its early fetch; keep the two identical.
-    const slug = new URLSearchParams(location.search).get("p") || "";
+    // Pages generated under blog/<slug>/ carry their slug. blog/post.html?p=<slug> is the old
+    // address: a known post moves on to its page, anything else gets the not-found message.
+    const fixedSlug = article.getAttribute("data-slug");
+    const slug = fixedSlug || new URLSearchParams(location.search).get("p") || "";
+    // tools/build-posts.mjs applies the same rule; keep the two identical.
     if (!/^[a-z0-9-]+$/.test(slug)) {
       showNotFound(article);
+      return;
+    }
+    const manifest = (root.SITE_POSTS || []).find((post) => post.slug === slug);
+    if (!fixedSlug) {
+      if (!Array.isArray(root.SITE_POSTS)) showLoadError(article, "页面脚本没有载入完整。");
+      else if (manifest) location.replace(new URL(`blog/${slug}/`, siteRoot).href + location.hash);
+      else showNotFound(article);
       return;
     }
     if (typeof root.renderMarkdown !== "function" || typeof root.splitFrontMatter !== "function") {
@@ -108,7 +120,7 @@
     article.setAttribute("aria-busy", "true");
     try {
       const early = root.SITE_POST_FETCH;
-      const response = await (early && early.slug === slug ? early.response : fetch(`../posts/${slug}.md`));
+      const response = await (early && early.slug === slug ? early.response : fetch(new URL(`posts/${slug}.md`, siteRoot)));
       if (response.status === 404) {
         showNotFound(article);
         return;
@@ -116,9 +128,10 @@
       if (!response.ok) throw new Error(String(response.status));
       const raw = await response.text();
       const { meta, body } = root.splitFrontMatter(raw);
-      const manifest = (root.SITE_POSTS || []).find((post) => post.slug === slug) || {};
-      const title = meta.title || manifest.title || slug;
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(meta.date || "") ? meta.date : manifest.date || "";
+      // js/posts.js wins over the front matter: the generated <title> and share tags come from it.
+      const info = manifest || {};
+      const title = info.title || meta.title || slug;
+      const date = info.date || (/^\d{4}-\d{2}-\d{2}$/.test(meta.date || "") ? meta.date : "");
       document.title = `${title} · Yihua Liu`;
       article.replaceChildren();
       const header = document.createElement("header");
@@ -138,7 +151,7 @@
       const back = document.createElement("p");
       back.className = "back";
       const link = document.createElement("a");
-      link.href = "./";
+      link.href = new URL("blog/", siteRoot).href;
       link.textContent = "返回笔记";
       back.append(link);
       article.append(header, prose, back);
