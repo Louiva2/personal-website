@@ -19,7 +19,7 @@
    muted #CEA1AA — 7.5:1 on the page, 6.2:1 on the band, 6.5:1 on the wash
    text on #FDCDCD (selection, skip link) #211014 — 12.9:1
    hair #5C2F3A; soft #E3C0C4 — 10.1:1 on the page, 8.8:1 on the wash
-   plate #FBE3DD — the sheet of paper an illustration sits on. Illustrations have a white ground
+   plate #F3D8D2 — the sheet of paper an illustration sits on. Illustrations have a white ground
    and are multiplied onto what is behind them: the page itself in light mode, this sheet in dark.
 */
 :root {
@@ -62,7 +62,7 @@
     --shade: rgba(0, 0, 0, 0.45);
     --hair: #5C2F3A;
     --soft: #E3C0C4;
-    --plate: #FBE3DD;
+    --plate: #F3D8D2;
     --plate-pad: 0.5rem;
   }
 }

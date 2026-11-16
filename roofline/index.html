@@ -38,7 +38,7 @@
     <h1>找边儿</h1>
     <p class="deck">一块卡能跑多快，纸上先有一个上界。这里先把它算出来，再一个模型一个模型地量，看实测离边儿还差多少、差在哪儿。</p>
     <figure class="plate series-plate">
-      <img src="../assets/img/roofline.webp" width="1200" height="800" alt="蜡笔画：小猪踮脚站在凳子上，把花举过头顶；花的叶尖碰到一根先斜后平的木梁。">
+      <img src="../assets/img/roofline.webp" width="1050" height="700" alt="蜡笔画：小猪站在凳子上，把花举过头顶；花的叶尖碰到一根先斜后平的木梁。">
     </figure>
 
     <!-- The same sketch twice: .roof-narrow for phones, .roof-wide from 34rem up. css/site.css shows one. -->
@@ -53,13 +53,13 @@
         <path class="roof-gap" d="M331 124V197"/>
         <circle class="roof-ridge" cx="190" cy="120" r="4.5"/>
         <circle class="roof-dot" cx="112" cy="232" r="5"/>
-        <circle class="roof-dot" cx="214" cy="168" r="5"/>
+        <circle class="roof-dot" cx="214" cy="184" r="5"/>
         <circle class="roof-dot" cx="331" cy="204" r="5"/>
         <text transform="translate(121 189) rotate(-45)" y="-14" text-anchor="middle">斜率＝内存带宽</text>
         <text x="190" y="104" text-anchor="middle">脊点</text>
         <text x="272" y="108" text-anchor="middle">峰值算力</text>
         <text x="127" y="256" text-anchor="middle">decode，batch 1</text>
-        <text x="201" y="192">decode，大 batch</text>
+        <text x="201" y="208">decode，大 batch</text>
         <text x="331" y="228" text-anchor="middle">prefill</text>
         <text class="roof-accent" text-anchor="end"><tspan x="322" y="146">差的这一截，</tspan><tspan x="322" y="163">就是要调的</tspan></text>
         <text class="roof-quiet" x="30" y="20">可达算力（FLOP/s）</text>
@@ -75,13 +75,13 @@
         <path class="roof-gap" d="M536 114V190"/>
         <circle class="roof-ridge" cx="316" cy="110" r="5"/>
         <circle class="roof-dot" cx="170" cy="290" r="5.5"/>
-        <circle class="roof-dot" cx="356" cy="166" r="5.5"/>
+        <circle class="roof-dot" cx="356" cy="206" r="5.5"/>
         <circle class="roof-dot" cx="536" cy="198" r="5.5"/>
         <text transform="translate(213 213) rotate(-45)" y="-16" text-anchor="middle">斜率＝内存带宽</text>
         <text x="316" y="92" text-anchor="middle">脊点</text>
         <text x="460" y="96" text-anchor="middle">峰值算力</text>
         <text x="183" y="295">decode，batch 1</text>
-        <text x="369" y="171">decode，大 batch</text>
+        <text x="369" y="211">decode，大 batch</text>
         <text x="536" y="224" text-anchor="middle">prefill</text>
         <text class="roof-accent" x="525" y="141" text-anchor="end">差的这一截，就是要调的</text>
         <text class="roof-quiet" x="64" y="22">可达算力（FLOP/s）</text>
