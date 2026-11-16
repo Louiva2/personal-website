@@ -76,7 +76,7 @@ python3 -m http.server 8080
 `SITE_SERIES.<栏目>.planned` 是还没发的期，不需要 Markdown，也不生成页面：
 
 ```js
-{ no: 4, title: "调度器的一步", note: "一句话说这一期要回答什么。", status: "planned" },
+{ no: 14, title: "下一期的题目", note: "一两句话：这一期拆什么，背后是哪条数学。", status: "planned" },
 ```
 
 `status` 写 `"writing"`（显示"在写"）或 `"planned"`（显示"计划"）。`title` 可以先留空，这时标题的位置显示状态。增、删、换顺序都只改这个数组。
