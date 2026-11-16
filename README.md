@@ -101,16 +101,30 @@ ledger: { model: "模型名", gpu: "卡", precision: "fp16", unit: "tok/s", boun
 
 ## 插图
 
-页面上的四张插图放在 `assets/img/`，文件名和尺寸是固定的：
+页面上的六张插图放在 `assets/img/`，文件名和尺寸是固定的：
 
 | 文件 | 尺寸 | 用在哪儿 |
 |---|---|---|
 | `hero.webp` | 698 × 698 | 首页 |
 | `weekly.webp` | 1026 × 684 | 每周一拆的栏目页和首页卡片 |
 | `roofline.webp` | 1050 × 700 | 找边儿的栏目页和首页卡片 |
+| `notes.webp` | 1085 × 587 | 笔记页 |
+| `projects.webp` | 1058 × 705 | 项目页 |
 | `lost.webp` | 572 × 572 | 404 页 |
 
-换图时覆盖同名文件即可。图要求是**纯白底、四周过渡到白**：亮色模式下用 `mix-blend-mode: multiply` 直接叠在页面上，白色的部分看不见，所以图没有边框；暗色模式下图放在一张浅色的"纸片"（`--plate`）上。底色不是纯白的图，亮色模式下会露出一个矩形。换了画面记得同时改 `alt`（`index.html`、两个栏目页、`404.html`）。
+换图时覆盖同名文件即可。图要求是**纯白底、四周过渡到白**：亮色模式下用 `mix-blend-mode: multiply` 直接叠在页面上，白色的部分看不见，所以图没有边框；暗色模式下图放在一张浅色的"纸片"（`--plate`）上。底色不是纯白的图，亮色模式下会露出一个矩形。换了画面记得同时改 `alt`（`index.html`、两个栏目页、`blog/index.html`、`projects/index.html`、`404.html`）。
+
+## 标志、图标和分享图
+
+站点的标志是一朵花，花心坐着一只小猪。它只有一个源文件，根目录的 `favicon.svg`（64 × 64 的画板）：既是标签页图标，也是页眉里名字左边的小标（`.site-mark`）。另外三样是由它出的位图，改了标志要一起重出：
+
+| 文件 | 尺寸 | 用在哪儿 |
+|---|---|---|
+| `favicon.ico` | 16、32、48 | 不认 SVG 图标的浏览器 |
+| `apple-touch-icon.png` | 180 × 180 | 加到手机主屏时的图标，纸色底 |
+| `assets/img/og.jpg` | 1200 × 630 | 链接预览里的大图：标志、名字、首页第一句和首页那张插图 |
+
+三个图标的 `<link>` 手写在每个页面的 `<head>` 里；`og.jpg` 是全站共用的一张，手写在首页、两个栏目页、笔记、项目的 `og:image` 里，文章页的由生成脚本从 `BASE_URL` 拼出来。
 
 生成的页面把标题和摘要直接写进 `<title>`、description 和 Open Graph 标签，链接预览不用跑 JavaScript。这些页面里的绝对地址来自脚本里的常量 `BASE_URL`（<https://louiva2.github.io/personal-website/>）；首页、两个栏目页、笔记、项目的 canonical 和 og:url 是手写的，站点换地址时一起改。加 `--check` 只检查不写入，页面缺失或过期时以非零状态退出。旧链接 `blog/post.html?p=<slug>` 会跳到新地址。
 
@@ -126,7 +140,7 @@ ledger: { model: "模型名", gpu: "卡", precision: "fp16", unit: "tok/s", boun
 
 Static personal site for Yihua Liu (Louiva2). Posts are Markdown files rendered in the browser, with LaTeX via vendored KaTeX. Viewing needs no build step. Each post also gets a generated page at `blog/<slug>/` that carries its title and share-preview tags: after adding the Markdown file and its entry in `js/posts.js`, run `node tools/build-posts.mjs` (Node 18+, no dependencies) and commit the output. Their absolute URLs come from `BASE_URL` in that script; the home, notes and projects pages hard-code theirs.
 
-The site has two series, `weekly/` and `roofline/`. A post joins one by adding `series` and `no` to its entry in `js/posts.js`; issues not yet written live in `SITE_SERIES.<series>.planned` in the same file and need no Markdown. A roofline post with a `ledger` field adds a row to the ledger table on `roofline/`. The four illustrations in `assets/img/` have fixed names and sizes and must have a pure white ground, since they are multiplied onto the page.
+The site has two series, `weekly/` and `roofline/`. A post joins one by adding `series` and `no` to its entry in `js/posts.js`; issues not yet written live in `SITE_SERIES.<series>.planned` in the same file and need no Markdown. A roofline post with a `ledger` field adds a row to the ledger table on `roofline/`. The six illustrations in `assets/img/` have fixed names and sizes and must have a pure white ground, since they are multiplied onto the page. The site mark is `favicon.svg`, also shown beside the name in the header; `favicon.ico`, `apple-touch-icon.png` and the share-preview picture `assets/img/og.jpg` are rendered from it.
 
 Preview from the repository root:
 

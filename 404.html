@@ -7,7 +7,9 @@
   <meta name="theme-color" content="#FDCDCD" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#471F28" media="(prefers-color-scheme: dark)">
   <title>找不到这一页 · Yihua Liu</title>
+  <link rel="icon" href="/personal-website/favicon.ico" sizes="32x32" data-path="favicon.ico">
   <link rel="icon" href="/personal-website/favicon.svg" type="image/svg+xml" data-path="favicon.svg">
+  <link rel="apple-touch-icon" href="/personal-website/apple-touch-icon.png" data-path="apple-touch-icon.png">
   <style>
     :root {
       --pink: #FDCDCD;
@@ -45,7 +47,7 @@
       background: linear-gradient(to bottom, var(--paper), var(--paper-bottom));
       background-attachment: fixed;
       color: var(--ink);
-      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "Source Han Serif CN", "STSong", "SimSun", serif;
       font-size: 1.125rem;
       line-height: 1.85;
     }
@@ -74,7 +76,8 @@
     header a { color: var(--ink); text-decoration: none; }
     header a:hover { color: var(--link-hover); }
     nav { display: flex; flex-wrap: wrap; gap: 1.15rem; }
-    .name { font-weight: 600; }
+    .name { font-weight: 600; white-space: nowrap; }
+    .mark { width: 1.45em; height: 1.45em; margin-right: 0.45em; vertical-align: -0.33em; }
     footer .inner { padding-bottom: 1.15rem; }
     footer p { margin: 0; }
     footer a { color: var(--link-hover); }
@@ -86,7 +89,7 @@
 <body>
   <header>
     <div class="inner">
-      <a class="name" href="/personal-website/" data-path="">Yihua Liu</a>
+      <a class="name" href="/personal-website/" data-path=""><img class="mark" src="/personal-website/favicon.svg" data-path="favicon.svg" width="26" height="26" alt="">Yihua Liu</a>
       <nav aria-label="站点">
         <a href="/personal-website/" data-path="">首页</a>
         <a href="/personal-website/weekly/" data-path="weekly/">每周一拆</a>

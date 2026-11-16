@@ -86,7 +86,10 @@ body {
   background: linear-gradient(to bottom, var(--paper), var(--paper-bottom));
   background-attachment: fixed;
   color: var(--ink);
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
+  /* Latin first, then the Chinese serif. Noto Serif SC (Source Han Serif) goes ahead of STSong and
+     SimSun: those two have a single weight, so every heading would be a smeared, synthesized bold,
+     and they do not close up the gap between two punctuation marks in a row. */
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "Source Han Serif CN", "STSong", "SimSun", serif;
   font-size: 1.125rem;
   line-height: 1.85;
   text-rendering: optimizeLegibility;
@@ -175,6 +178,15 @@ a:hover {
 
 .site-name {
   font-weight: 600;
+  white-space: nowrap;
+}
+
+/* The mark beside the name: the flower with the pig at its heart. It is favicon.svg. */
+.site-mark {
+  width: 1.45em;
+  height: 1.45em;
+  margin-right: 0.45em;
+  vertical-align: -0.33em;
 }
 
 nav {
@@ -487,6 +499,7 @@ figcaption {
   color: var(--muted);
   font-size: 1.02rem;
   line-height: 1.7;
+  text-wrap: pretty;
 }
 
 /* The small line above a title. Latin reads as small capitals: capitals set small and spaced
@@ -543,6 +556,8 @@ figcaption {
 
 .hero .deck {
   margin-bottom: 0;
+  /* A short paragraph in a narrow column: even lines, so the last one is not two characters. */
+  text-wrap: balance;
 }
 
 .hero .plate {
@@ -593,6 +608,7 @@ figcaption {
 .card-blurb {
   margin: 0.3rem 0 0;
   line-height: 1.7;
+  text-wrap: pretty;
 }
 
 .card-latest {
@@ -708,6 +724,7 @@ a.toc-row:focus-visible .toc-title {
   color: var(--muted);
   font-size: 0.98rem;
   line-height: 1.7;
+  text-wrap: pretty;
 }
 
 .toc-status {
