@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FDCDCD" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#471F28" media="(prefers-color-scheme: dark)">
+  <title>找边儿 · Yihua Liu</title>
+  <meta name="description" content="一块卡能跑多快，纸上先有一个上界。这里先把它算出来，再一个模型一个模型地量，看实测离边儿还差多少、差在哪儿。">
+  <link rel="canonical" href="https://louiva2.github.io/personal-website/roofline/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="找边儿">
+  <meta property="og:description" content="一块卡能跑多快，纸上先有一个上界。这里先把它算出来，再一个模型一个模型地量，看实测离边儿还差多少、差在哪儿。">
+  <meta property="og:url" content="https://louiva2.github.io/personal-website/roofline/">
+  <meta property="og:site_name" content="Yihua Liu">
+  <meta property="og:locale" content="zh_CN">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/site.css">
+</head>
+<body>
+  <a class="skip" href="#content">跳到正文</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="site-name" href="../">Yihua Liu</a>
+      <nav aria-label="站点">
+        <a href="../">首页</a>
+        <a href="../weekly/">每周一拆</a>
+        <a href="./" aria-current="page">找边儿</a>
+        <a href="../blog/">笔记</a>
+        <a href="../projects/">项目</a>
+      </nav>
+    </div>
+  </header>
+  <main id="content" class="wrap">
+    <p class="kicker">Roofline, model by model</p>
+    <h1>找边儿</h1>
+    <p class="deck">一块卡能跑多快，纸上先有一个上界。这里先把它算出来，再一个模型一个模型地量，看实测离边儿还差多少、差在哪儿。</p>
+    <figure class="plate series-plate">
+      <img src="../assets/img/roofline.webp" width="1050" height="700" alt="蜡笔画：小猪站在凳子上，把花举过头顶；花的叶尖碰到一根先斜后平的木梁。">
+    </figure>
+
+    <!-- The same sketch twice: .roof-narrow for phones, .roof-wide from 34rem up. css/site.css shows one. -->
+    <figure class="roof">
+      <svg class="roof-narrow" viewBox="0 0 360 304" role="img" aria-labelledby="roof-narrow-title roof-narrow-desc" font-size="13">
+        <title id="roof-narrow-title">roofline 示意图</title>
+        <desc id="roof-narrow-desc">横轴是算术强度，纵轴是可达算力。屋顶线先是一段斜线，斜率等于内存带宽；到脊点以后变成水平线，高度是峰值算力。屋顶下面有三个点：batch 为 1 的 decode 在斜线下方，大 batch 的 decode 在脊点附近，prefill 在水平段下方。点到屋顶之间的那一截，就是要调的。</desc>
+        <path class="roof-under" d="M52 270V258L190 120H346V270Z"/>
+        <path class="roof-drop" d="M190 128V270"/>
+        <path class="roof-axis" d="M30 34V270H352M25.5 41l4.5-7 4.5 7M345 265.5l7 4.5-7 4.5"/>
+        <path class="roof-line" d="M52 258L190 120H346"/>
+        <path class="roof-gap" d="M331 124V197"/>
+        <circle class="roof-ridge" cx="190" cy="120" r="4.5"/>
+        <circle class="roof-dot" cx="112" cy="232" r="5"/>
+        <circle class="roof-dot" cx="214" cy="184" r="5"/>
+        <circle class="roof-dot" cx="331" cy="204" r="5"/>
+        <text transform="translate(121 189) rotate(-45)" y="-14" text-anchor="middle">斜率＝内存带宽</text>
+        <text x="190" y="104" text-anchor="middle">脊点</text>
+        <text x="272" y="108" text-anchor="middle">峰值算力</text>
+        <text x="127" y="256" text-anchor="middle">decode，batch 1</text>
+        <text x="201" y="208">decode，大 batch</text>
+        <text x="331" y="228" text-anchor="middle">prefill</text>
+        <text class="roof-accent" text-anchor="end"><tspan x="322" y="146">差的这一截，</tspan><tspan x="322" y="163">就是要调的</tspan></text>
+        <text class="roof-quiet" x="30" y="20">可达算力（FLOP/s）</text>
+        <text class="roof-quiet" x="352" y="292" text-anchor="end">算术强度（FLOP/byte）</text>
+      </svg>
+      <svg class="roof-wide" viewBox="0 0 640 372" role="img" aria-labelledby="roof-wide-title roof-wide-desc" font-size="15">
+        <title id="roof-wide-title">roofline 示意图</title>
+        <desc id="roof-wide-desc">横轴是算术强度，纵轴是可达算力。屋顶线先是一段斜线，斜率等于内存带宽；到脊点以后变成水平线，高度是峰值算力。屋顶下面有三个点：batch 为 1 的 decode 在斜线下方，大 batch 的 decode 在脊点附近，prefill 在水平段下方。点到屋顶之间的那一截，就是要调的。</desc>
+        <path class="roof-under" d="M110 330V316L316 110H604V330Z"/>
+        <path class="roof-drop" d="M316 118V330"/>
+        <path class="roof-axis" d="M64 36V330H612M59 44l5-8 5 8M604 325l8 5-8 5"/>
+        <path class="roof-line" d="M110 316L316 110H604"/>
+        <path class="roof-gap" d="M536 114V190"/>
+        <circle class="roof-ridge" cx="316" cy="110" r="5"/>
+        <circle class="roof-dot" cx="170" cy="290" r="5.5"/>
+        <circle class="roof-dot" cx="356" cy="206" r="5.5"/>
+        <circle class="roof-dot" cx="536" cy="198" r="5.5"/>
+        <text transform="translate(213 213) rotate(-45)" y="-16" text-anchor="middle">斜率＝内存带宽</text>
+        <text x="316" y="92" text-anchor="middle">脊点</text>
+        <text x="460" y="96" text-anchor="middle">峰值算力</text>
+        <text x="183" y="295">decode，batch 1</text>
+        <text x="369" y="211">decode，大 batch</text>
+        <text x="536" y="224" text-anchor="middle">prefill</text>
+        <text class="roof-accent" x="525" y="141" text-anchor="end">差的这一截，就是要调的</text>
+        <text class="roof-quiet" x="64" y="22">可达算力（FLOP/s）</text>
+        <text class="roof-quiet" x="612" y="356" text-anchor="end">算术强度（FLOP/byte）</text>
+      </svg>
+      <figcaption>示意图，不是实测。</figcaption>
+    </figure>
+
+    <h2>怎么出发</h2>
+    <!-- From js/posts.js: the entries of the roofline series that have no ledger. -->
+    <ol class="toc" data-series="roofline" data-only="plain"></ol>
+    <noscript>
+      <p>目录需要 JavaScript。数据在 <code>js/posts.js</code> 里。</p>
+    </noscript>
+    <p class="lede">然后才是模型：从账最干净的一只开始——单卡、dense、fp16。之后每换一只，只让上界里多出一项：量化、长上下文、MoE、多卡。</p>
+
+    <h2>账本</h2>
+    <div class="table-scroll">
+      <table class="ledger">
+        <thead>
+          <tr>
+            <th scope="col">模型 · 卡 · 精度</th>
+            <th scope="col">算出的边</th>
+            <th scope="col">实测</th>
+            <th scope="col">到边</th>
+          </tr>
+        </thead>
+        <!-- Rows come from the ledger field of roofline posts in js/posts.js and replace the row below. -->
+        <tbody data-ledger="roofline">
+          <tr>
+            <td class="ledger-empty" colspan="4">第一只还在量。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fine">每一篇都是同一个顺序：先写下预测，再量，再说差在哪儿、调了什么、还差多少。</p>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>© 2026 Yihua Liu · <a href="https://github.com/Louiva2">GitHub</a> · 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
+    </div>
+  </footer>
+  <script src="../js/posts.js" defer></script>
+  <script src="../js/site.js" defer></script>
+</body>
+</html>

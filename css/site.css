@@ -6,6 +6,8 @@
    link hover #8A3045 — 6.7:1 on the page, 6.1:1 on the wash, 5.7:1 on the band
    muted #7A4550 — 6.2:1 on the page, 5.3:1 on the band
    #B5485A is the same rose, but it falls under 4.5:1 once the page is this pink.
+   hair #EBB9BC — hairlines between rows; decoration only, never the one carrier of meaning
+   soft #5A343A — titles of issues not written yet; 8.8:1 on the page bottom, 8.0:1 on the wash
 
    Dark (prefers-color-scheme: dark): a deep wine page, and #FDCDCD stays as the accent
    for the active nav, link hover, heading marks, selection, and skip link.
@@ -16,6 +18,9 @@
    link hover #FDCDCD — 11.9:1 on the page, 9.9:1 on the band, 10.3:1 on the wash
    muted #CEA1AA — 7.5:1 on the page, 6.2:1 on the band, 6.5:1 on the wash
    text on #FDCDCD (selection, skip link) #211014 — 12.9:1
+   hair #5C2F3A; soft #E3C0C4 — 10.1:1 on the page, 8.8:1 on the wash
+   plate #F3D8D2 — the sheet of paper an illustration sits on. Illustrations have a white ground
+   and are multiplied onto what is behind them: the page itself in light mode, this sheet in dark.
 */
 :root {
   --pink: #FDCDCD;
@@ -33,6 +38,10 @@
   --band: var(--pink);
   --on-pink: var(--ink);
   --shade: rgba(122, 69, 80, 0.3);
+  --hair: #EBB9BC;
+  --soft: #5A343A;
+  --plate: transparent;
+  --plate-pad: 0;
   color-scheme: light dark;
 }
 
@@ -51,6 +60,10 @@
     --rule: #A2495B;
     --on-pink: #211014;
     --shade: rgba(0, 0, 0, 0.45);
+    --hair: #5C2F3A;
+    --soft: #E3C0C4;
+    --plate: #F3D8D2;
+    --plate-pad: 0.5rem;
   }
 }
 
@@ -73,7 +86,7 @@ body {
   background: linear-gradient(to bottom, var(--paper), var(--paper-bottom));
   background-attachment: fixed;
   color: var(--ink);
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "SimSun", serif;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
   font-size: 1.125rem;
   line-height: 1.85;
   text-rendering: optimizeLegibility;
@@ -322,6 +335,103 @@ pre {
   margin: 0;
 }
 
+/* Tables, figures and folded asides in a post. site.js puts each table in a .table-scroll box. */
+.table-scroll {
+  margin: 0 0 1.45em;
+  overflow-x: auto;
+}
+
+.table-scroll:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+}
+
+.prose table,
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.prose th,
+.prose td,
+.ledger th,
+.ledger td {
+  padding: 0.5rem 1.1rem 0.5rem 0;
+  border-bottom: 1px solid var(--hair);
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.prose th:last-child,
+.prose td:last-child,
+.ledger th:last-child,
+.ledger td:last-child {
+  padding-right: 0;
+}
+
+.prose thead th,
+.ledger thead th {
+  border-bottom-color: var(--rule);
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.prose th[align="right"],
+.prose td[align="right"] {
+  text-align: right;
+}
+
+.prose th[align="center"],
+.prose td[align="center"] {
+  text-align: center;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose figure {
+  margin: 1.7em 0;
+}
+
+.prose figure img,
+.prose figure svg {
+  display: block;
+  margin-inline: auto;
+}
+
+figcaption {
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.prose details {
+  margin: 0 0 1.35em;
+  padding: 0.55rem 0.95rem;
+  background: var(--wash);
+}
+
+.prose summary {
+  color: var(--link);
+  cursor: pointer;
+}
+
+.prose details[open] > summary {
+  margin-bottom: 0.6rem;
+}
+
+.prose details > :last-child {
+  margin-bottom: 0;
+}
+
 .index {
   list-style: none;
   margin: 0.35rem 0 0;
@@ -345,12 +455,16 @@ pre {
   background: var(--wash);
 }
 
-.index time {
+.index-meta {
   display: block;
   margin-bottom: 0.15rem;
   color: var(--muted);
   font-size: 0.95rem;
   font-variant-numeric: tabular-nums;
+}
+
+.index-tag::before {
+  content: " · ";
 }
 
 .index-title {
@@ -373,6 +487,412 @@ pre {
   color: var(--muted);
   font-size: 1.02rem;
   line-height: 1.7;
+}
+
+/* The small line above a title. Latin reads as small capitals: capitals set small and spaced
+   out, rather than font-variant-caps, which the CJK serif fonts in the stack can only fake. */
+.kicker {
+  margin: 0 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.kicker a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.kicker a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* An illustration. The drawings have a white ground that fades out at the edges, so in light
+   mode they are multiplied straight onto the page and have no box. In dark mode --plate turns
+   the figure into a sheet of pale paper and the drawing is multiplied onto that. */
+.plate {
+  margin: 0;
+  padding: var(--plate-pad);
+  background: var(--plate);
+}
+
+.plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+  mix-blend-mode: multiply;
+}
+
+/* Home page. */
+.hero {
+  display: grid;
+  align-items: center;
+  gap: 1.75rem 2rem;
+  margin-bottom: 3.25rem;
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  line-height: 1.35;
+}
+
+.hero .deck {
+  margin-bottom: 0;
+}
+
+.hero .plate {
+  width: min(15rem, 72%);
+  margin-inline: auto;
+}
+
+.cards {
+  display: grid;
+  gap: 1.5rem 2.25rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  margin-inline: -0.65rem;
+  padding: 0.65rem 0.65rem 0.8rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.card:hover,
+.card:focus-visible {
+  background: var(--wash);
+}
+
+.card .plate {
+  margin-bottom: 0.9rem;
+}
+
+.card h2 {
+  margin: 0;
+  color: var(--link);
+  font-size: 1.45rem;
+}
+
+.card h2::after {
+  content: none;
+}
+
+.card:hover h2,
+.card:focus-visible h2 {
+  color: var(--link-hover);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.card-blurb {
+  margin: 0.3rem 0 0;
+  line-height: 1.7;
+}
+
+.card-latest {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-lead {
+  margin-right: 0.6em;
+  padding: 0 0.4em;
+  background: var(--wash);
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.card:hover .card-lead,
+.card:focus-visible .card-lead {
+  background: var(--band);
+}
+
+.card-more {
+  margin: 0.55rem 0 0;
+  color: var(--link);
+  font-size: 0.98rem;
+}
+
+@media (min-width: 40rem) {
+  .hero {
+    grid-template-columns: 1fr 15rem;
+  }
+
+  .hero .plate {
+    width: auto;
+  }
+
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Series pages. */
+.series-plate {
+  width: min(30rem, 100%);
+  margin: 0 auto 2.4rem;
+}
+
+.series-plate + h2,
+.toc + h2 {
+  margin-top: 2.2rem;
+}
+
+/* The numbered contents of a series. */
+.toc {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.toc-item {
+  border-bottom: 1px solid var(--hair);
+}
+
+.toc-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
+  align-items: baseline;
+  column-gap: 0.4rem;
+  margin-inline: -0.65rem;
+  padding: 0.8rem 0.65rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.toc-row:hover,
+a.toc-row:focus-visible {
+  background: var(--wash);
+}
+
+.toc-no {
+  color: var(--link);
+  font-variant-numeric: tabular-nums;
+}
+
+.toc-title {
+  display: block;
+  color: var(--soft);
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+a.toc-row .toc-title {
+  color: var(--link);
+}
+
+a.toc-row:hover .toc-title,
+a.toc-row:focus-visible .toc-title {
+  color: var(--link-hover);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.toc-title.is-untitled {
+  color: var(--muted);
+}
+
+.toc-note {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.toc-status {
+  padding-left: 0.9rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fine {
+  margin: 1.1rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.lede {
+  margin: 1.2rem 0 0;
+  text-wrap: pretty;
+}
+
+/* The roofline sketch. Two drawings of the same thing: a narrow one with shorter labels for
+   phones, a wide one from 34rem up. Colors come from the page, so both modes work. */
+.roof {
+  margin: 0 0 0.6rem;
+}
+
+.roof svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: currentColor;
+}
+
+.roof-wide {
+  display: none !important;
+}
+
+@media (min-width: 34rem) {
+  .roof-wide {
+    display: block !important;
+  }
+
+  .roof-narrow {
+    display: none !important;
+  }
+}
+
+.roof-under {
+  fill: var(--wash);
+}
+
+.roof-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.roof-axis {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.roof-drop {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 1 5;
+  stroke-linecap: round;
+}
+
+.roof-gap {
+  fill: none;
+  stroke: var(--link);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 4;
+}
+
+.roof-dot {
+  fill: var(--link);
+}
+
+.roof-ridge {
+  fill: var(--paper);
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.roof-quiet {
+  fill: var(--muted);
+}
+
+.roof-accent {
+  fill: var(--link);
+}
+
+/* The ledger on the roofline page. */
+.ledger th[scope="row"] {
+  font-weight: 400;
+}
+
+.ledger th[scope="row"] a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+.ledger-rig {
+  display: block;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.ledger td {
+  white-space: nowrap;
+}
+
+.ledger .ledger-empty {
+  color: var(--muted);
+  white-space: normal;
+}
+
+.ledger-bar {
+  display: block;
+  width: 4.5rem;
+  height: 3px;
+  margin-top: 0.3rem;
+  background: var(--hair);
+}
+
+.ledger-bar span {
+  display: block;
+  height: 100%;
+  background: var(--link);
+}
+
+/* The issue before and the issue after, at the end of a series post. */
+.post-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+  margin-top: 3rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--hair);
+}
+
+.post-nav a {
+  display: block;
+  text-decoration: none;
+}
+
+.post-next {
+  grid-column: 2;
+  text-align: right;
+}
+
+.post-nav-lead {
+  display: block;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.post-nav-title {
+  display: block;
+  line-height: 1.5;
+}
+
+.post-nav a:hover .post-nav-title {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.post-nav + .back {
+  margin-top: 1.6rem;
+}
+
+.lost {
+  width: min(15rem, 70%);
+  margin: 0 0 1.6rem;
 }
 
 .project + .project {
@@ -451,5 +971,13 @@ button:focus-visible,
 
   h1 {
     font-size: 1.55rem;
+  }
+
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+
+  nav {
+    gap: 1rem;
   }
 }
