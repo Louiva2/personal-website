@@ -126,6 +126,8 @@ function renderPage(template, post) {
     summary: post.summary,
     date: post.date,
     url: `${BASE_URL}blog/${post.slug}/`,
+    // One share-preview picture for the whole site.
+    image: `${BASE_URL}assets/img/og.jpg`,
   };
   const current = NAV.includes(post.series) ? post.series : "blog";
   // {{{nav:<item>}}} is the one raw placeholder: the attribute for the current nav item, or nothing.
