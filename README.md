@@ -14,11 +14,13 @@ Yihua Liu（GitHub：[Louiva2](https://github.com/Louiva2)）的个人站点。�
 python3 -m http.server 8080
 ```
 
-然后打开 <http://127.0.0.1:8080/>。首页、笔记、项目分别在：
+然后打开 <http://127.0.0.1:8080/>。几个页面分别在：
 
-- <http://127.0.0.1:8080/>
-- <http://127.0.0.1:8080/blog/>
-- <http://127.0.0.1:8080/projects/>
+- 首页 <http://127.0.0.1:8080/>
+- 每周一拆 <http://127.0.0.1:8080/weekly/>
+- 找边儿 <http://127.0.0.1:8080/roofline/>
+- 笔记（全部文章） <http://127.0.0.1:8080/blog/>
+- 项目 <http://127.0.0.1:8080/projects/>
 
 页面链接都是相对路径，所以从仓库根目录预览是通的。GitHub Pages 项目站点会多一层 `/personal-website/`。要按发布后的路径检查，在上一级目录把本仓库放成名为 `personal-website` 的文件夹（或做符号链接），再从那里启动服务器，然后打开 <http://127.0.0.1:8080/personal-website/>。
 
@@ -46,7 +48,71 @@ python3 -m http.server 8080
 
 列表按 `date` 从新到旧排列。行内公式用一对 `$`，独立成行的公式用一对 `$$`。文章采用 CC BY-NC 4.0，见下面的版权说明。
 
-生成的页面把标题和摘要直接写进 `<title>`、description 和 Open Graph 标签，链接预览不用跑 JavaScript。这些页面里的绝对地址来自脚本里的常量 `BASE_URL`（<https://louiva2.github.io/personal-website/>）；首页、笔记、项目三页的 canonical 和 og:url 是手写的，站点换地址时一起改。加 `--check` 只检查不写入，页面缺失或过期时以非零状态退出。旧链接 `blog/post.html?p=<slug>` 会跳到新地址。
+正文里可以用表格（GFM 写法，窄屏会横向滚动）、`<figure>` 配 `<figcaption>`、`<details>`。文章自己的图放在 `assets/img/` 下，按文章建子目录。
+
+## 两个栏目
+
+站点有两个栏目：**每周一拆**（`weekly/`）和**找边儿**（`roofline/`）。栏目的数据也在 `js/posts.js` 里，栏目页的目录、首页卡片上的"最新／下一篇"、文章页的栏目名和上下篇，都从这一个文件取。
+
+### 发一期
+
+和加一篇笔记一样，只是在 `SITE_POSTS` 那一条里多写两项：
+
+```js
+{
+  slug: "speculative-decoding",
+  title: "投机解码：从拒绝采样到 DFlash、DSpark 的实现",
+  date: "2026-11-27",
+  summary: "一两句话。",
+  series: "weekly", // 或 "roofline"
+  no: 2,            // 期号，同一栏目里不能重复
+},
+```
+
+如果这一期原来列在 `SITE_SERIES.weekly.planned` 里，把那一条删掉（期号重复时生成脚本会报错）。然后运行 `node tools/build-posts.mjs`。文章地址仍是 `blog/<slug>/`，生成的页面里导航高亮的是它所在的栏目。栏目文章只出现在栏目页和 `blog/` 的总列表里，首页的"笔记"只列不属于栏目的文章。
+
+### 改计划
+
+`SITE_SERIES.<栏目>.planned` 是还没发的期，不需要 Markdown，也不生成页面：
+
+```js
+{ no: 4, title: "调度器的一步", note: "一句话说这一期要回答什么。", status: "planned" },
+```
+
+`status` 写 `"writing"`（显示"在写"）或 `"planned"`（显示"计划"）。`title` 可以先留空，这时标题的位置显示状态。增、删、换顺序都只改这个数组。
+
+找边儿页上的"怎么出发"也是这样来的：它列的是 roofline 栏目里不带 `ledger` 的条目（计划中的和已发的）。
+
+### 往账本加一行
+
+找边儿里写某一只模型的文章，在 `SITE_POSTS` 那一条上再带一项 `ledger`，栏目页"账本"那张表就多出一行，不用改 HTML：
+
+```js
+ledger: { model: "模型名", gpu: "卡", precision: "fp16", unit: "tok/s", bound: 150, measured: 120 },
+```
+
+`bound` 是纸上算出的上界，`measured` 是实测，两个都是数字、同一个单位；"到边"一列是 `measured / bound`。一篇文章要记多行时，`ledger` 写成数组。表里一行都没有时显示"第一只还在量。"
+
+### 改栏目名或导语
+
+栏目的名字、英文小标题和导语在两处：`js/posts.js` 的 `SITE_SERIES`，以及栏目页自己的 HTML（没有 JavaScript 时也要看得到）。两处不一致时 `node tools/build-posts.mjs` 会报错。导航和首页卡片上的栏目名是手写的，改名时一起改：`index.html`、`weekly/`、`roofline/`、`blog/index.html`、`blog/post.html`、`projects/index.html`、`404.html`、`tools/post-template.html`。
+
+`roofline/index.html` 里的 roofline 示意图是手写的内联 SVG，有两份：`.roof-narrow` 给手机，`.roof-wide` 给 34rem 以上的宽度，由 CSS 选一份显示。改图时两份都改。
+
+## 插图
+
+页面上的四张插图放在 `assets/img/`，文件名和尺寸是固定的：
+
+| 文件 | 尺寸 | 用在哪儿 |
+|---|---|---|
+| `hero.webp` | 800 × 800 | 首页 |
+| `weekly.webp` | 1200 × 800 | 每周一拆的栏目页和首页卡片 |
+| `roofline.webp` | 1200 × 800 | 找边儿的栏目页和首页卡片 |
+| `lost.webp` | 800 × 800 | 404 页 |
+
+换图时覆盖同名文件即可。图要求是**纯白底、四周过渡到白**：亮色模式下用 `mix-blend-mode: multiply` 直接叠在页面上，白色的部分看不见，所以图没有边框；暗色模式下图放在一张浅色的"纸片"（`--plate`）上。底色不是纯白的图，亮色模式下会露出一个矩形。换了画面记得同时改 `alt`（`index.html`、两个栏目页、`404.html`）。
+
+生成的页面把标题和摘要直接写进 `<title>`、description 和 Open Graph 标签，链接预览不用跑 JavaScript。这些页面里的绝对地址来自脚本里的常量 `BASE_URL`（<https://louiva2.github.io/personal-website/>）；首页、两个栏目页、笔记、项目的 canonical 和 og:url 是手写的，站点换地址时一起改。加 `--check` 只检查不写入，页面缺失或过期时以非零状态退出。旧链接 `blog/post.html?p=<slug>` 会跳到新地址。
 
 ## 版权
 
@@ -59,6 +125,8 @@ python3 -m http.server 8080
 ## English
 
 Static personal site for Yihua Liu (Louiva2). Posts are Markdown files rendered in the browser, with LaTeX via vendored KaTeX. Viewing needs no build step. Each post also gets a generated page at `blog/<slug>/` that carries its title and share-preview tags: after adding the Markdown file and its entry in `js/posts.js`, run `node tools/build-posts.mjs` (Node 18+, no dependencies) and commit the output. Their absolute URLs come from `BASE_URL` in that script; the home, notes and projects pages hard-code theirs.
+
+The site has two series, `weekly/` and `roofline/`. A post joins one by adding `series` and `no` to its entry in `js/posts.js`; issues not yet written live in `SITE_SERIES.<series>.planned` in the same file and need no Markdown. A roofline post with a `ledger` field adds a row to the ledger table on `roofline/`. The four illustrations in `assets/img/` have fixed names and sizes and must have a pure white ground, since they are multiplied onto the page.
 
 Preview from the repository root:
 
