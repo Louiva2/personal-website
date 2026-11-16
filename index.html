@@ -7,11 +7,11 @@
   <meta name="theme-color" content="#FDCDCD" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#471F28" media="(prefers-color-scheme: dark)">
   <title>Yihua Liu</title>
-  <meta name="description" content="Yihua Liu（Louiva2）的个人站点。我是一个做数学的人。">
+  <meta name="description" content="Yihua Liu 的个人站点。每周拆开一样推理系统里的东西；从 roofline 出发，一个模型一个模型地找算力的边儿；偶尔也写数学。">
   <link rel="canonical" href="https://louiva2.github.io/personal-website/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Yihua Liu">
-  <meta property="og:description" content="Yihua Liu（Louiva2）的个人站点。我是一个做数学的人。">
+  <meta property="og:description" content="Yihua Liu 的个人站点。每周拆开一样推理系统里的东西；从 roofline 出发，一个模型一个模型地找算力的边儿；偶尔也写数学。">
   <meta property="og:url" content="https://louiva2.github.io/personal-website/">
   <meta property="og:site_name" content="Yihua Liu">
   <meta property="og:locale" content="zh_CN">
@@ -26,27 +26,56 @@
       <a class="site-name" href="./">Yihua Liu</a>
       <nav aria-label="站点">
         <a href="./" aria-current="page">首页</a>
+        <a href="weekly/">每周一拆</a>
+        <a href="roofline/">找边儿</a>
         <a href="blog/">笔记</a>
         <a href="projects/">项目</a>
       </nav>
     </div>
   </header>
   <main id="content" class="wrap">
-    <h1>我是一个做数学的人。</h1>
-    <p class="deck">Yihua Liu，GitHub 上是 Louiva2。公开简介 I'm a math guy，就是这一句。</p>
-    <div class="prose">
-      <p>这个站点放在仓库 <a href="https://github.com/Louiva2/personal-website">personal-website</a> 里，用来写笔记，并索引我自己的代码仓库。GitHub 主页在 <a href="https://github.com/Louiva2">github.com/Louiva2</a>。</p>
-      <p>笔记用 Markdown 存放，公式用 LaTeX，打开页面时在浏览器里排版。仓库索引在<a href="projects/">项目</a>页，只列原创仓库。</p>
+    <section class="hero">
+      <div>
+        <h1>我是一个做数学的人。</h1>
+        <p class="deck">Yihua Liu。这里记两件事：每周拆开一样推理系统里的东西；从 roofline 出发，一个模型一个模型地找算力的边儿。偶尔也写数学。</p>
+      </div>
+      <figure class="plate">
+        <img src="assets/img/hero.webp" width="800" height="800" alt="蜡笔画：一只小猪站在小黑板前，黑板上画着一条先斜后平的折线；一朵花在凳子上看着。">
+      </figure>
+    </section>
+
+    <div class="cards">
+      <a class="card" href="weekly/">
+        <figure class="plate">
+          <img src="assets/img/weekly.webp" width="1200" height="800" loading="lazy" alt="蜡笔画：小猪拿着螺丝刀，把一台小机器拆开了，零件排成一排；花托着一个小齿轮在看。">
+        </figure>
+        <p class="kicker">Infra Weekly</p>
+        <h2>每周一拆</h2>
+        <p class="card-blurb">每周拆开推理系统里的一样东西。</p>
+        <p class="card-latest" data-series-latest="weekly"></p>
+        <p class="card-more">看全部 →</p>
+      </a>
+      <a class="card" href="roofline/">
+        <figure class="plate">
+          <img src="assets/img/roofline.webp" width="1200" height="800" loading="lazy" alt="蜡笔画：小猪踮脚站在凳子上，把花举过头顶；花的叶尖碰到一根先斜后平的木梁。">
+        </figure>
+        <p class="kicker">Roofline, model by model</p>
+        <h2>找边儿</h2>
+        <p class="card-blurb">先算出上界，再一只一只地量。</p>
+        <p class="card-latest" data-series-latest="roofline"></p>
+        <p class="card-more">看全部 →</p>
+      </a>
     </div>
+
     <h2>笔记</h2>
-    <ul class="index" data-posts data-base="blog/"></ul>
+    <ul class="index" data-posts="notes" data-base="blog/"></ul>
     <noscript>
       <p>笔记列表需要 JavaScript。也可以直接打开 <code>posts/</code> 里的 Markdown。</p>
     </noscript>
   </main>
   <footer class="site-footer">
     <div class="wrap">
-      <p>© 2026 Yihua Liu. 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
+      <p>© 2026 Yihua Liu · <a href="https://github.com/Louiva2">GitHub</a> · 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
     </div>
   </footer>
   <script src="js/posts.js" defer></script>

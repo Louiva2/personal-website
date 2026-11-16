@@ -18,6 +18,8 @@
       --link-hover: #8A3045;
       --mark: #D07080;
       --band: var(--pink);
+      --plate: transparent;
+      --plate-pad: 0;
       color-scheme: light dark;
     }
     /* Same dark palette as css/site.css. */
@@ -30,6 +32,8 @@
         --link: #EB8EA1;
         --link-hover: #FDCDCD;
         --mark: #FDCDCD;
+        --plate: #FBE3DD;
+        --plate-pad: 0.5rem;
       }
     }
     *, *::before, *::after { box-sizing: border-box; }
@@ -41,7 +45,7 @@
       background: linear-gradient(to bottom, var(--paper), var(--paper-bottom));
       background-attachment: fixed;
       color: var(--ink);
-      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "SimSun", serif;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
       font-size: 1.125rem;
       line-height: 1.85;
     }
@@ -74,6 +78,9 @@
     footer .inner { padding-bottom: 1.15rem; }
     footer p { margin: 0; }
     footer a { color: var(--link-hover); }
+    /* The same illustration treatment as .plate in css/site.css. */
+    .plate { width: min(15rem, 70%); margin: 0 0 1.6rem; padding: var(--plate-pad); background: var(--plate); }
+    .plate img { display: block; width: 100%; height: auto; mix-blend-mode: multiply; }
   </style>
 </head>
 <body>
@@ -82,29 +89,36 @@
       <a class="name" href="/personal-website/" data-path="">Yihua Liu</a>
       <nav aria-label="站点">
         <a href="/personal-website/" data-path="">首页</a>
+        <a href="/personal-website/weekly/" data-path="weekly/">每周一拆</a>
+        <a href="/personal-website/roofline/" data-path="roofline/">找边儿</a>
         <a href="/personal-website/blog/" data-path="blog/">笔记</a>
         <a href="/personal-website/projects/" data-path="projects/">项目</a>
       </nav>
     </div>
   </header>
   <main class="inner">
+    <figure class="plate">
+      <img src="/personal-website/assets/img/lost.webp" data-path="assets/img/lost.webp" width="800" height="800" alt="蜡笔画：小猪举着一张看不懂的地图；花用叶子指着另一个方向。">
+    </figure>
     <h1>找不到这一页</h1>
     <p>这个地址没有对应的页面。</p>
     <p><a href="/personal-website/" data-path="">回首页</a></p>
   </main>
   <footer>
     <div class="inner">
-      <p>© 2026 Yihua Liu. 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
+      <p>© 2026 Yihua Liu · <a href="https://github.com/Louiva2">GitHub</a> · 代码保留所有权利 · 文章采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
     </div>
   </footer>
   <script>
-    // Root-absolute links work at any depth on GitHub Pages. Outside /personal-website/
+    // Root-absolute addresses work at any depth on GitHub Pages. Outside /personal-website/
     // (a local preview from the repo root), point them at the server root instead.
     (function () {
       var home = location.pathname.indexOf("/personal-website/") === 0 ? "/personal-website/" : "/";
       var links = document.querySelectorAll("[data-path]");
       for (var i = 0; i < links.length; i++) {
-        links[i].href = home + links[i].getAttribute("data-path");
+        var path = home + links[i].getAttribute("data-path");
+        if (links[i].tagName === "IMG") links[i].src = path;
+        else links[i].href = path;
       }
     })();
   </script>
