@@ -95,6 +95,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* The English pages. The line height above is set for Chinese; Latin text wants less.
+   Where none of the Latin serifs in the stack is installed, Latin text falls to the Chinese font,
+   whose quotation marks and apostrophe are full width unless the proportional forms are asked for.
+   Chinese set on an English page keeps its own punctuation. */
+html:lang(en) body {
+  line-height: 1.7;
+  font-variant-east-asian: proportional-width;
+}
+
+html:lang(en) :lang(zh) {
+  font-variant-east-asian: normal;
+}
+
 ::selection {
   background: var(--pink);
   color: var(--on-pink);
@@ -193,6 +206,39 @@ nav {
   display: flex;
   flex-wrap: wrap;
   gap: 1.15rem;
+}
+
+/* The link to this page in the other language: last in the nav, set off by a hairline. */
+nav .lang {
+  align-self: center;
+  padding-left: 1.15rem;
+  border-left: 1px solid var(--rule);
+  /* A short line box, so the hairline is about as tall as the letters. */
+  line-height: 1.15;
+}
+
+/* On a narrow screen the nav is a row of its own under the name, and the language link
+   goes up beside the name instead, so it never ends up alone on a third row. */
+@media (max-width: 36rem) {
+  .header-inner {
+    position: relative;
+  }
+
+  nav .lang {
+    position: absolute;
+    top: 1.05rem;
+    right: 1.5rem;
+    padding-left: 0;
+    border-left: 0;
+    line-height: inherit;
+  }
+
+  /* The five English labels are wider than the Chinese ones. Set a little smaller and closer,
+     they stay on one row at phone widths instead of leaving the last one alone on a second. */
+  html:lang(en) nav {
+    gap: 0.4rem 0.75rem;
+    font-size: 0.95rem;
+  }
 }
 
 main.wrap {

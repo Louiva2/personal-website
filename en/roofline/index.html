@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FDCDCD" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#471F28" media="(prefers-color-scheme: dark)">
+  <title>Finding the Edge · Yihua Liu</title>
+  <meta name="description" content="How fast a card can run has an upper bound that can be worked out on paper first. Here I work it out, then measure one model at a time, to see how far the measurement falls short of the edge and where the gap comes from.">
+  <link rel="canonical" href="https://louiva2.github.io/personal-website/en/roofline/">
+  <link rel="alternate" hreflang="zh-CN" href="https://louiva2.github.io/personal-website/roofline/">
+  <link rel="alternate" hreflang="en" href="https://louiva2.github.io/personal-website/en/roofline/">
+  <link rel="alternate" hreflang="x-default" href="https://louiva2.github.io/personal-website/roofline/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Finding the Edge">
+  <meta property="og:description" content="How fast a card can run has an upper bound that can be worked out on paper first. Here I work it out, then measure one model at a time, to see how far the measurement falls short of the edge and where the gap comes from.">
+  <meta property="og:url" content="https://louiva2.github.io/personal-website/en/roofline/">
+  <meta property="og:site_name" content="Yihua Liu">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://louiva2.github.io/personal-website/assets/img/og-en.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Crayon drawing: a piglet stands at a small blackboard while a flower watches from a stool; beside them, the words “I’m a math guy.”">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../../favicon.ico" sizes="32x32">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+  <link rel="stylesheet" href="../../css/site.css">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="site-name" href="../"><img class="site-mark" src="../../favicon.svg" width="26" height="26" alt="">Yihua Liu</a>
+      <nav aria-label="Site">
+        <a href="../">Home</a>
+        <a href="../weekly/">Weekly</a>
+        <a href="./" aria-current="page">Roofline</a>
+        <a href="../blog/">Notes</a>
+        <a href="../projects/">Projects</a>
+        <a class="lang" href="../../roofline/" lang="zh-CN" hreflang="zh-CN">中文</a>
+      </nav>
+    </div>
+  </header>
+  <main id="content" class="wrap">
+    <p class="kicker" lang="zh-CN">找边儿</p>
+    <h1>Finding the Edge</h1>
+    <p class="deck">How fast a card can run has an upper bound that can be worked out on paper first. Here I work it out, then measure one model at a time, to see how far the measurement falls short of the edge and where the gap comes from.</p>
+    <figure class="plate series-plate">
+      <img src="../../assets/img/roofline.webp" width="1050" height="700" alt="Crayon drawing: a piglet stands on a stool and lifts a flower over his head; the tip of her leaf touches a wooden beam that climbs and then runs level.">
+    </figure>
+
+    <!-- The same sketch twice: .roof-narrow for phones, .roof-wide from 34rem up. css/site.css shows one. -->
+    <figure class="roof">
+      <svg class="roof-narrow" viewBox="0 0 360 304" role="img" aria-labelledby="roof-narrow-title roof-narrow-desc" font-size="13">
+        <title id="roof-narrow-title">The roofline, sketched</title>
+        <desc id="roof-narrow-desc">The horizontal axis is arithmetic intensity, the vertical axis attainable compute. The roofline starts as a slope whose gradient is the memory bandwidth; past the ridge point it is a level line at the height of peak compute. Three points sit under the roof: decode at batch 1 below the slope, decode at a big batch near the ridge point, and prefill below the level part. The stretch between a point and the roof is what there is to tune.</desc>
+        <path class="roof-under" d="M52 270V258L190 120H346V270Z"/>
+        <path class="roof-drop" d="M190 128V270"/>
+        <path class="roof-axis" d="M30 34V270H352M25.5 41l4.5-7 4.5 7M345 265.5l7 4.5-7 4.5"/>
+        <path class="roof-line" d="M52 258L190 120H346"/>
+        <path class="roof-gap" d="M331 124V197"/>
+        <circle class="roof-ridge" cx="190" cy="120" r="4.5"/>
+        <circle class="roof-dot" cx="112" cy="232" r="5"/>
+        <circle class="roof-dot" cx="214" cy="184" r="5"/>
+        <circle class="roof-dot" cx="331" cy="204" r="5"/>
+        <text transform="translate(121 189) rotate(-45)" y="-14" text-anchor="middle">slope = memory bandwidth</text>
+        <text x="178" y="104" text-anchor="middle">ridge point</text>
+        <text x="292" y="108" text-anchor="middle">peak compute</text>
+        <text x="127" y="256" text-anchor="middle">decode, batch 1</text>
+        <text x="194" y="208">decode, big batch</text>
+        <text x="331" y="228" text-anchor="middle">prefill</text>
+        <text class="roof-accent" text-anchor="end"><tspan x="322" y="146">this gap is</tspan><tspan x="322" y="163">what gets tuned</tspan></text>
+        <text class="roof-quiet" x="30" y="20">attainable compute (FLOP/s)</text>
+        <text class="roof-quiet" x="352" y="292" text-anchor="end">arithmetic intensity (FLOP/byte)</text>
+      </svg>
+      <svg class="roof-wide" viewBox="0 0 640 372" role="img" aria-labelledby="roof-wide-title roof-wide-desc" font-size="15">
+        <title id="roof-wide-title">The roofline, sketched</title>
+        <desc id="roof-wide-desc">The horizontal axis is arithmetic intensity, the vertical axis attainable compute. The roofline starts as a slope whose gradient is the memory bandwidth; past the ridge point it is a level line at the height of peak compute. Three points sit under the roof: decode at batch 1 below the slope, decode at a big batch near the ridge point, and prefill below the level part. The stretch between a point and the roof is what there is to tune.</desc>
+        <path class="roof-under" d="M110 330V316L316 110H604V330Z"/>
+        <path class="roof-drop" d="M316 118V330"/>
+        <path class="roof-axis" d="M64 36V330H612M59 44l5-8 5 8M604 325l8 5-8 5"/>
+        <path class="roof-line" d="M110 316L316 110H604"/>
+        <path class="roof-gap" d="M536 114V190"/>
+        <circle class="roof-ridge" cx="316" cy="110" r="5"/>
+        <circle class="roof-dot" cx="170" cy="290" r="5.5"/>
+        <circle class="roof-dot" cx="356" cy="206" r="5.5"/>
+        <circle class="roof-dot" cx="536" cy="198" r="5.5"/>
+        <text transform="translate(213 213) rotate(-45)" y="-16" text-anchor="middle">slope = memory bandwidth</text>
+        <text x="316" y="92" text-anchor="middle">ridge point</text>
+        <text x="460" y="96" text-anchor="middle">peak compute</text>
+        <text x="183" y="295">decode, batch 1</text>
+        <text x="369" y="211">decode, big batch</text>
+        <text x="536" y="224" text-anchor="middle">prefill</text>
+        <text class="roof-accent" text-anchor="end"><tspan x="525" y="141">this gap is</tspan><tspan x="525" y="160">what gets tuned</tspan></text>
+        <text class="roof-quiet" x="64" y="22">attainable compute (FLOP/s)</text>
+        <text class="roof-quiet" x="612" y="356" text-anchor="end">arithmetic intensity (FLOP/byte)</text>
+      </svg>
+      <figcaption>A sketch, not a measurement.</figcaption>
+    </figure>
+
+    <h2>Where it starts</h2>
+    <!-- From js/posts.js: the entries of the roofline series that have no ledger. -->
+    <ol class="toc" data-series="roofline" data-only="plain"></ol>
+    <noscript>
+      <p>The contents need JavaScript. The data is in <code>js/posts.js</code>.</p>
+    </noscript>
+    <p class="lede">Only then come the models, starting with the one whose accounts are cleanest: a single card, dense, fp16. Each model after that adds just one term to the bound: quantization, long context, MoE, several cards.</p>
+
+    <h2>The ledger</h2>
+    <div class="table-scroll">
+      <table class="ledger">
+        <thead>
+          <tr>
+            <th scope="col">Model · card · precision</th>
+            <th scope="col">Bound on paper</th>
+            <th scope="col">Measured</th>
+            <th scope="col">Reached</th>
+          </tr>
+        </thead>
+        <!-- Rows come from the ledger field of roofline posts in js/posts.js and replace the row below. -->
+        <tbody data-ledger="roofline">
+          <tr>
+            <td class="ledger-empty" colspan="4">The first one is still being measured.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fine">Every issue runs in the same order: write down the prediction, measure, then say where the gap is, what was tuned, and how much is left.</p>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>© 2026 Yihua Liu · <a href="https://github.com/Louiva2">GitHub</a> · Code: all rights reserved · Posts: <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></p>
+    </div>
+  </footer>
+  <script src="../../js/posts.js" defer></script>
+  <script src="../../js/site.js" defer></script>
+</body>
+</html>

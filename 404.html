@@ -19,6 +19,7 @@
       --link: #A33D52;
       --link-hover: #8A3045;
       --mark: #D07080;
+      --rule: #D07080;
       --band: var(--pink);
       --plate: transparent;
       --plate-pad: 0;
@@ -34,6 +35,7 @@
         --link: #EB8EA1;
         --link-hover: #FDCDCD;
         --mark: #FDCDCD;
+        --rule: #A2495B;
         --plate: #FBE3DD;
         --plate-pad: 0.5rem;
       }
@@ -76,6 +78,12 @@
     header a { color: var(--ink); text-decoration: none; }
     header a:hover { color: var(--link-hover); }
     nav { display: flex; flex-wrap: wrap; gap: 1.15rem; }
+    /* The same language link as in css/site.css. */
+    nav .lang { align-self: center; padding-left: 1.15rem; border-left: 1px solid var(--rule); line-height: 1.15; }
+    @media (max-width: 36rem) {
+      header .inner { position: relative; }
+      nav .lang { position: absolute; top: 1.05rem; right: 1.5rem; padding-left: 0; border-left: 0; line-height: inherit; }
+    }
     .name { font-weight: 600; white-space: nowrap; }
     .mark { width: 1.45em; height: 1.45em; margin-right: 0.45em; vertical-align: -0.33em; }
     footer .inner { padding-bottom: 1.15rem; }
@@ -96,6 +104,7 @@
         <a href="/personal-website/roofline/" data-path="roofline/">找边儿</a>
         <a href="/personal-website/blog/" data-path="blog/">笔记</a>
         <a href="/personal-website/projects/" data-path="projects/">项目</a>
+        <a class="lang" href="/personal-website/en/" data-path="en/" lang="en" hreflang="en">EN</a>
       </nav>
     </div>
   </header>
@@ -106,6 +115,7 @@
     <h1>找不到这一页</h1>
     <p>这个地址没有对应的页面。</p>
     <p><a href="/personal-website/" data-path="">回首页</a></p>
+    <p lang="en">There is no page at this address. <a href="/personal-website/en/" data-path="en/">Home, in English</a></p>
   </main>
   <footer>
     <div class="inner">
