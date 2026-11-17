@@ -76,6 +76,21 @@
       return pre + take({ type: "math", display: false, tex: tex.trim() });
     });
 
+    // Side notes, written as Markdown footnotes: [^名字] in the text, and on a line of its own
+    // [^名字]: 注的内容. They sit in the right margin on a wide screen and open under the line on
+    // a narrow one. Definitions are read after code and math are set aside, so a note may hold math.
+    const notes = {};
+    src = src.replace(/^\[\^([^\]\s]+)\]:[ \t]+(.+)$\n?/gm, (_, id, text) => {
+      notes[id] = text.trim();
+      return "";
+    });
+    let noteCount = 0;
+    src = src.replace(/\[\^([^\]\s]+)\]/g, (full, id) => {
+      if (!(id in notes)) return full;
+      noteCount += 1;
+      return take({ type: "note", n: noteCount, text: notes[id] });
+    });
+
     const parsed = markedApi.parse(src, { gfm: true, breaks: false });
     let html = typeof parsed === "string" ? parsed : String(parsed);
 
@@ -87,6 +102,14 @@
         return `<pre><code${cls}>${escapeHtml(token.code)}</code></pre>`;
       }
       if (token.type === "inline-code") return `<code>${escapeHtml(token.code)}</code>`;
+      if (token.type === "note") {
+        const inner = String(markedApi.parseInline(token.text))
+          .replace(/%%T(\d+)%%/g, (_, id) => renderToken(tokens[Number(id)]));
+        const id = `sn-${token.n}`;
+        return `<span class="sidenote-wrap"><label for="${id}" class="sidenote-ref" aria-label="${/^en\b/i.test(document.documentElement.lang || "") ? "Note" : "注"} ${token.n}">${token.n}</label>` +
+          `<input type="checkbox" id="${id}" class="sidenote-toggle">` +
+          `<span class="sidenote" role="note"><span class="sidenote-no">${token.n}</span>${inner}</span></span>`;
+      }
       if (token.type === "math") {
         let out;
         try {

@@ -300,6 +300,81 @@ h2::after {
   text-wrap: pretty;
 }
 
+/* Chinese body text is set flush on both sides, like a printed page. Only Chinese: Latin text
+   without hyphenation would open up rivers of space. */
+.prose:lang(zh) p,
+.prose:lang(zh) li {
+  text-align: justify;
+  /* pretty pulls words down to save a lone last character; with justify the shortened lines
+     get stretched, and on a phone the gaps show. Plain wrapping keeps every line full. */
+  text-wrap: wrap;
+}
+
+/* Side notes (Markdown footnotes, see js/render.js). The number in the text is a label for a
+   hidden checkbox: on a narrow screen tapping it opens the note under the line; on a wide one
+   the note sits in the right margin beside the line it belongs to, and the checkbox does nothing. */
+.sidenote-toggle {
+  display: none;
+}
+
+.sidenote-ref {
+  cursor: pointer;
+  color: var(--link);
+  font-size: 0.68em;
+  line-height: 0;
+  vertical-align: super;
+  padding: 0 0.12em;
+  font-variant-numeric: lining-nums;
+}
+
+.sidenote {
+  display: none;
+  margin: 0.6em 0 0.8em;
+  padding: 0.55em 0.8em;
+  border-left: 2px solid var(--rule);
+  background: var(--wash);
+  color: var(--soft);
+  font-size: 0.85em;
+  line-height: 1.7;
+  text-align: left;
+  text-indent: 0;
+}
+
+.sidenote-toggle:checked + .sidenote {
+  display: block;
+}
+
+.sidenote-no {
+  color: var(--mark);
+  font-size: 0.85em;
+  margin-right: 0.45em;
+  font-variant-numeric: lining-nums;
+}
+
+.sidenote .katex {
+  font-size: 1em;
+}
+
+@media (min-width: 74rem) {
+  .sidenote-ref {
+    cursor: default;
+  }
+
+  .sidenote,
+  .sidenote-toggle:checked + .sidenote {
+    display: block;
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 0.2em -15.5rem 0.8em 0;
+    padding: 0 0 0 0.75em;
+    background: none;
+    border-left: 1px solid var(--hair);
+    font-size: 0.8em;
+    line-height: 1.65;
+  }
+}
+
 .prose ul,
 .prose ol {
   margin: 0 0 1.35em;
