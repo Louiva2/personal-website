@@ -66,7 +66,56 @@ summary: 在 8×H20 上给 DeepSeek-V4.1-Flash 算边之前的第一步：只列
 ### 1a. 整个模型
 
 <figure class="flow">
-<svg class="flow-svg" viewBox="0 0 360 642" role="img" aria-labelledby="v41-model-zh-title v41-model-zh-desc" font-size="11"><title id="v41-model-zh-title">DeepSeek-V4.1-Flash 整个模型</title><desc id="v41-model-zh-desc">从上到下：input_ids（加图像 patch）经过按词表切分的 embedding 和 mHC 展开，变成 4 条流。第 0、1 层只有 SWA，FFN 是 MoE，第 1 层之前有 Engram。编码器是第 2 到 19 层，三组，每组一个压缩比 2 的 CSA2 Full 层加五个 Reuse 层，kv 来源是第 2、8、14 层，第 14 层之前有 Engram。编码器的输出 H_20 进入第 20 层，也就是解码器的 Full 层，压缩比 1：它的压缩器从 H_20 建出解码器的全局 KV，索引器扫全部 L，并建出候选池。之后第 21 到 23 层是 Reuse；第 24 到 39 层四组，每组一个只在候选池里重排的 Reindex 层加三个 Reuse 层；再用最后一组 A 系数做 mHC 合流、RMSNorm，最后是 LM head。旁边几样：视觉编码器把图像 token 送进 embedding；每一层都有 128 条的 SWA 环；第 2、8、14、20 层把压缩 KV 和索引器 K 写进全局缓存，H20 上每个 token 1630 字节；DSpark 草稿器在基线里关着，读第 37 到 39 层的隐状态，给 head 提草稿。</desc><rect class="flow-opt" x="238" y="405" width="116" height="166" rx="3"/><text class="flow-opt-text" text-anchor="middle"><tspan x="296" y="422.0">DSpark 草稿器</tspan><tspan x="296" y="436.0" class="flow-quiet">（基线里关着）</tspan><tspan x="296" y="450.0">读 L37、L38、L39</tspan><tspan x="296" y="464.0">的隐状态</tspan><tspan x="296" y="478.0">main_proj</tspan><tspan x="296" y="492.0">15360→5120</tspan><tspan x="296" y="506.0">3 个只有 SWA 的块</tspan><tspan x="296" y="520.0">（MoE 128 选 3）</tspan><tspan x="296" y="534.0">5 个草稿位置</tspan><tspan x="296" y="548.0">Markov head r=256</tspan><tspan x="296" y="562.0">置信度 head</tspan></text><path class="flow-store" d="M238 252V348A58 4 0 0 0 354 348V252A58 4 0 0 0 238 252Z"/><path class="flow-store-rim" d="M238 252A58 4 0 0 0 354 252"/><text text-anchor="middle"><tspan x="296" y="273.0">全局 KV 缓存</tspan><tspan x="296" y="287.0">1630 B/token</tspan><tspan x="296" y="301.0" class="flow-quiet">（H20 上）</tspan><tspan x="296" y="315.0" class="flow-quiet">← L2/L8/L14 (m=2)</tspan><tspan x="296" y="329.0" class="flow-quiet">← L20 (m=1)</tspan><tspan x="296" y="343.0" class="flow-quiet">各带索引器 K</tspan></text><path class="flow-store" d="M238 176V244A58 4 0 0 0 354 244V176A58 4 0 0 0 238 176Z"/><path class="flow-store-rim" d="M238 176A58 4 0 0 0 354 176"/><text text-anchor="middle"><tspan x="296" y="197.0">SWA 缓存，</tspan><tspan x="296" y="211.0">40 层都有</tspan><tspan x="296" y="225.0" class="flow-quiet">每层每请求</tspan><tspan x="296" y="239.0" class="flow-quiet">环 128 × 584 B</tspan></text><rect class="flow-opt" x="238" y="6" width="116" height="68" rx="3"/><text class="flow-opt-text" text-anchor="middle"><tspan x="296" y="23.0">DeepSeek-ViT</tspan><tspan x="296" y="37.0">32 层，d=1024</tspan><tspan x="296" y="51.0">+ 3×3 unshuffle</tspan><tspan x="296" y="65.0">+ aligner MLP</tspan></text><rect class="flow-box" x="6" y="610" width="220" height="26" rx="3"/><text text-anchor="middle"><tspan x="116" y="627.0">head 129280×5120 BF16 → logits</tspan></text><rect class="flow-box" x="6" y="552" width="220" height="40" rx="3"/><text text-anchor="middle"><tspan x="116" y="569.0">mHC 合流（hc_combine，用最后的 A）</tspan><tspan x="116" y="583.0">→ RMSNorm</tspan></text><rect class="flow-box" x="6" y="494" width="220" height="40" rx="3"/><text text-anchor="middle"><tspan x="116" y="511.0">L24–39：4 × [Reindex（限在候选池）</tspan><tspan x="116" y="525.0">+ 3 × Reuse] + MoE</tspan></text><rect class="flow-box" x="6" y="450" width="220" height="26" rx="3"/><text text-anchor="middle"><tspan x="116" y="467.0">L21–23 Reuse</tspan></text><rect class="flow-box" x="6" y="350" width="220" height="82" rx="3"/><text text-anchor="middle"><tspan x="116" y="367.0">L20 CSA2 (m=1) Full：</tspan><tspan x="116" y="381.0">压缩器从 H_20 建出</tspan><tspan x="116" y="395.0">解码器的全局 KV</tspan><tspan x="116" y="409.0">+ 索引器扫全部 L</tspan><tspan x="116" y="423.0">+ 候选池（2048 块 × 8）</tspan></text><rect class="flow-box" x="6" y="244" width="220" height="82" rx="3"/><text text-anchor="middle"><tspan x="116" y="261.0">编码器 L2–19：</tspan><tspan x="116" y="275.0">3 × [CSA2 (m=2) Full + 5 × Reuse]</tspan><tspan x="116" y="289.0">+ MoE</tspan><tspan x="116" y="303.0" class="flow-quiet">（kv_src 2/8/14；</tspan><tspan x="116" y="317.0" class="flow-quiet">L14 之前有 Engram）</tspan></text><rect class="flow-box" x="6" y="182" width="220" height="40" rx="3"/><text text-anchor="middle"><tspan x="116" y="199.0">L0–1 只有 SWA + MoE</tspan><tspan x="116" y="213.0" class="flow-quiet">（L1 之前有 Engram）</tspan></text><rect class="flow-box" x="6" y="138" width="220" height="26" rx="3"/><text text-anchor="middle"><tspan x="116" y="155.0">mHC 展开 → X [T,4,d]</tspan></text><rect class="flow-box" x="6" y="80" width="220" height="40" rx="3"/><text text-anchor="middle"><tspan x="116" y="97.0">embed 129280×5120 BF16</tspan><tspan x="116" y="111.0">（按词表切分）→ x [T,d]</tspan></text><rect class="flow-box" x="6" y="6" width="220" height="26" rx="3"/><text text-anchor="middle"><tspan x="116" y="23.0">input_ids [B,S]（+ 图像 patch）</tspan></text><path class="flow-edge" d="M116 32L116 80"/><path class="flow-head" d="M116 80L112.8 74.0L119.2 74.0Z"/><path class="flow-edge" d="M116 120L116 138"/><path class="flow-head" d="M116 138L112.8 132.0L119.2 132.0Z"/><path class="flow-edge" d="M116 164L116 182"/><path class="flow-head" d="M116 182L112.8 176.0L119.2 176.0Z"/><path class="flow-edge" d="M116 222L116 244"/><path class="flow-head" d="M116 244L112.8 238.0L119.2 238.0Z"/><path class="flow-edge" d="M116 326L116 350"/><path class="flow-head" d="M116 350L112.8 344.0L119.2 344.0Z"/><path class="flow-edge" d="M116 432L116 450"/><path class="flow-head" d="M116 450L112.8 444.0L119.2 444.0Z"/><path class="flow-edge" d="M116 476L116 494"/><path class="flow-head" d="M116 494L112.8 488.0L119.2 488.0Z"/><path class="flow-edge" d="M116 534L116 552"/><path class="flow-head" d="M116 552L112.8 546.0L119.2 546.0Z"/><path class="flow-edge" d="M116 592L116 610"/><path class="flow-head" d="M116 610L112.8 604.0L119.2 604.0Z"/><text class="flow-quiet" x="121" y="341" text-anchor="start" font-size="10">H_20 = 编码器输出</text><path class="flow-edge flow-edge-opt" d="M296 74L296 100L226 100"/><path class="flow-head flow-head-opt" d="M226 100L232.0 96.8L232.0 103.2Z"/><text class="flow-quiet" x="292" y="113" text-anchor="end" font-size="10">图像 token</text><path class="flow-edge flow-edge-opt" d="M226 202L238 202"/><path class="flow-head flow-head-opt" d="M238 202L232.0 205.2L232.0 198.8Z"/><path class="flow-edge flow-edge-opt" d="M226 285L238 285"/><path class="flow-head flow-head-opt" d="M238 285L232.0 288.2L232.0 281.8Z"/><path class="flow-edge flow-edge-opt" d="M226 391L252 391L252 349"/><path class="flow-head flow-head-opt" d="M252 349L255.2 355.0L248.8 355.0Z"/><path class="flow-edge flow-edge-opt" d="M226 514L238 514"/><path class="flow-head flow-head-opt" d="M238 514L232.0 517.2L232.0 510.8Z"/><path class="flow-edge flow-edge-opt" d="M296 571L296 623L226 623"/><path class="flow-head flow-head-opt" d="M226 623L232.0 619.8L232.0 626.2Z"/><text class="flow-quiet" x="292" y="619" text-anchor="end" font-size="10">草稿</text></svg>
+<svg class="flow-svg" viewBox="0 0 360 642" role="img" aria-labelledby="v41-model-zh-title v41-model-zh-desc" font-size="11">
+<title id="v41-model-zh-title">DeepSeek-V4.1-Flash 整个模型</title>
+<desc id="v41-model-zh-desc">从上到下：input_ids（加图像 patch）经过按词表切分的 embedding 和 mHC 展开，变成 4 条流。第 0、1 层只有 SWA，FFN 是 MoE，第 1 层之前有 Engram。编码器是第 2 到 19 层，三组，每组一个压缩比 2 的 CSA2 Full 层加五个 Reuse 层，kv 来源是第 2、8、14 层，第 14 层之前有 Engram。编码器的输出 H_20 进入第 20 层，也就是解码器的 Full 层，压缩比 1：它的压缩器从 H_20 建出解码器的全局 KV，索引器扫全部 L，并建出候选池。之后第 21 到 23 层是 Reuse；第 24 到 39 层四组，每组一个只在候选池里重排的 Reindex 层加三个 Reuse 层；再用最后一组 A 系数做 mHC 合流、RMSNorm，最后是 LM head。旁边几样：视觉编码器把图像 token 送进 embedding；每一层都有 128 条的 SWA 环；第 2、8、14、20 层把压缩 KV 和索引器 K 写进全局缓存，H20 上每个 token 1630 字节；DSpark 草稿器在基线里关着，读第 37 到 39 层的隐状态，给 head 提草稿。</desc>
+<rect class="flow-opt" x="238" y="405" width="116" height="166" rx="3"/>
+<text text-anchor="middle"><tspan x="296" y="422.0">DSpark 草稿器</tspan><tspan x="296" y="436.0" class="flow-quiet">（基线里关着）</tspan><tspan x="296" y="450.0">读 L37、L38、L39</tspan><tspan x="296" y="464.0">的隐状态</tspan><tspan x="296" y="478.0">main_proj</tspan><tspan x="296" y="492.0">15360→5120</tspan><tspan x="296" y="506.0">3 个只有 SWA 的块</tspan><tspan x="296" y="520.0">（MoE 128 选 3）</tspan><tspan x="296" y="534.0">5 个草稿位置</tspan><tspan x="296" y="548.0">Markov head r=256</tspan><tspan x="296" y="562.0">置信度 head</tspan></text>
+<path class="flow-store" d="M238 252V348A58 4 0 0 0 354 348V252A58 4 0 0 0 238 252Z"/><path class="flow-store-rim" d="M238 252A58 4 0 0 0 354 252"/>
+<text text-anchor="middle"><tspan x="296" y="273.0">全局 KV 缓存</tspan><tspan x="296" y="287.0">1630 B/token</tspan><tspan x="296" y="301.0" class="flow-quiet">（H20 上）</tspan><tspan x="296" y="315.0" class="flow-quiet">← L2/L8/L14 (m=2)</tspan><tspan x="296" y="329.0" class="flow-quiet">← L20 (m=1)</tspan><tspan x="296" y="343.0" class="flow-quiet">各带索引器 K</tspan></text>
+<path class="flow-store" d="M238 176V244A58 4 0 0 0 354 244V176A58 4 0 0 0 238 176Z"/><path class="flow-store-rim" d="M238 176A58 4 0 0 0 354 176"/>
+<text text-anchor="middle"><tspan x="296" y="197.0">SWA 缓存，</tspan><tspan x="296" y="211.0">40 层都有</tspan><tspan x="296" y="225.0" class="flow-quiet">每层每请求</tspan><tspan x="296" y="239.0" class="flow-quiet">环 128 × 584 B</tspan></text>
+<rect class="flow-opt" x="238" y="6" width="116" height="68" rx="3"/>
+<text text-anchor="middle"><tspan x="296" y="23.0">DeepSeek-ViT</tspan><tspan x="296" y="37.0">32 层，d=1024</tspan><tspan x="296" y="51.0">+ 3×3 unshuffle</tspan><tspan x="296" y="65.0">+ aligner MLP</tspan></text>
+<rect class="flow-box" x="6" y="610" width="220" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="627.0">head 129280×5120 BF16 → logits</tspan></text>
+<rect class="flow-box" x="6" y="552" width="220" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="569.0">mHC 合流（hc_combine，用最后的 A）</tspan><tspan x="116" y="583.0">→ RMSNorm</tspan></text>
+<rect class="flow-box" x="6" y="494" width="220" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="511.0">L24–39：4 × [Reindex（限在候选池）</tspan><tspan x="116" y="525.0">+ 3 × Reuse] + MoE</tspan></text>
+<rect class="flow-box" x="6" y="450" width="220" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="467.0">L21–23 Reuse</tspan></text>
+<rect class="flow-box" x="6" y="350" width="220" height="82" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="367.0">L20 CSA2 (m=1) Full：</tspan><tspan x="116" y="381.0">压缩器从 H_20 建出</tspan><tspan x="116" y="395.0">解码器的全局 KV</tspan><tspan x="116" y="409.0">+ 索引器扫全部 L</tspan><tspan x="116" y="423.0">+ 候选池（2048 块 × 8）</tspan></text>
+<rect class="flow-box" x="6" y="244" width="220" height="82" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="261.0">编码器 L2–19：</tspan><tspan x="116" y="275.0">3 × [CSA2 (m=2) Full + 5 × Reuse]</tspan><tspan x="116" y="289.0">+ MoE</tspan><tspan x="116" y="303.0" class="flow-quiet">（kv_src 2/8/14；</tspan><tspan x="116" y="317.0" class="flow-quiet">L14 之前有 Engram）</tspan></text>
+<rect class="flow-box" x="6" y="182" width="220" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="199.0">L0–1 只有 SWA + MoE</tspan><tspan x="116" y="213.0" class="flow-quiet">（L1 之前有 Engram）</tspan></text>
+<rect class="flow-box" x="6" y="138" width="220" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="155.0">mHC 展开 → X [T,4,d]</tspan></text>
+<rect class="flow-box" x="6" y="80" width="220" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="97.0">embed 129280×5120 BF16</tspan><tspan x="116" y="111.0">（按词表切分）→ x [T,d]</tspan></text>
+<rect class="flow-box" x="6" y="6" width="220" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="116" y="23.0">input_ids [B,S]（+ 图像 patch）</tspan></text>
+<path class="flow-edge" d="M116 32L116 80"/><path class="flow-head" d="M116 80L112.8 74.0L119.2 74.0Z"/>
+<path class="flow-edge" d="M116 120L116 138"/><path class="flow-head" d="M116 138L112.8 132.0L119.2 132.0Z"/>
+<path class="flow-edge" d="M116 164L116 182"/><path class="flow-head" d="M116 182L112.8 176.0L119.2 176.0Z"/>
+<path class="flow-edge" d="M116 222L116 244"/><path class="flow-head" d="M116 244L112.8 238.0L119.2 238.0Z"/>
+<path class="flow-edge" d="M116 326L116 350"/><path class="flow-head" d="M116 350L112.8 344.0L119.2 344.0Z"/>
+<path class="flow-edge" d="M116 432L116 450"/><path class="flow-head" d="M116 450L112.8 444.0L119.2 444.0Z"/>
+<path class="flow-edge" d="M116 476L116 494"/><path class="flow-head" d="M116 494L112.8 488.0L119.2 488.0Z"/>
+<path class="flow-edge" d="M116 534L116 552"/><path class="flow-head" d="M116 552L112.8 546.0L119.2 546.0Z"/>
+<path class="flow-edge" d="M116 592L116 610"/><path class="flow-head" d="M116 610L112.8 604.0L119.2 604.0Z"/>
+<text class="flow-quiet" x="121" y="341" text-anchor="start" font-size="10">H_20 = 编码器输出</text>
+<path class="flow-edge flow-edge-opt" d="M296 74L296 100L226 100"/><path class="flow-head flow-head-opt" d="M226 100L232.0 96.8L232.0 103.2Z"/>
+<text class="flow-quiet" x="292" y="113" text-anchor="end" font-size="10">图像 token</text>
+<path class="flow-edge flow-edge-opt" d="M226 202L238 202"/><path class="flow-head flow-head-opt" d="M238 202L232.0 205.2L232.0 198.8Z"/>
+<path class="flow-edge flow-edge-opt" d="M226 285L238 285"/><path class="flow-head flow-head-opt" d="M238 285L232.0 288.2L232.0 281.8Z"/>
+<path class="flow-edge flow-edge-opt" d="M226 391L252 391L252 349"/><path class="flow-head flow-head-opt" d="M252 349L255.2 355.0L248.8 355.0Z"/>
+<path class="flow-edge flow-edge-opt" d="M226 514L238 514"/><path class="flow-head flow-head-opt" d="M238 514L232.0 517.2L232.0 510.8Z"/>
+<path class="flow-edge flow-edge-opt" d="M296 571L296 623L226 623"/><path class="flow-head flow-head-opt" d="M226 623L232.0 619.8L232.0 626.2Z"/>
+<text class="flow-quiet" x="292" y="619" text-anchor="end" font-size="10">草稿</text>
+</svg>
 <figcaption>整个模型。虚线：图像那条路、DSpark 草稿器（基线里关着），以及往缓存里写。</figcaption>
 </figure>
 
@@ -77,12 +126,95 @@ summary: 在 8×H20 上给 DeepSeek-V4.1-Flash 算边之前的第一步：只列
 为了在手机上看得清，一个块拆成两张图。虚线框是 Full 模式多出来的。
 
 <figure class="flow">
-<svg class="flow-svg" viewBox="0 0 360 936" role="img" aria-labelledby="v41-block-attn-zh-title v41-block-attn-zh-desc" font-size="11"><title id="v41-block-attn-zh-title">一个块的注意力半边</title><desc id="v41-block-attn-zh-desc">第 l 层，CSA2 注意力。4 条 mHC 流 X_l 和上一子层的输出进入 mHC 边界：更新残差，用 20 次 Sinkhorn 算出 24 个系数，混合输入，做 attn_norm，得到 x。一个复制、融合的 GEMM 同时算 wq_a 和 wkv。wkv 经过 kv_norm 和 RoPE 写进 SWA 环；wq_a 经过 q_norm 得到 query latent，再经 wq_b 得到每卡 8 个头，加 RoPE，补零到 64 个头。虚线框只在 Full 模式里跑：压缩器把 m 个 token 池化成一条压缩条目，索引器 K 投影它，再算索引器权重和索引器 Q，打分是按头加权的 relu(q·k) 之和，扫所有可见条目，留下前 512 个下标。Reuse 层读它的 topk_src 那一层的下标。FlashMLA 稀疏 MQA 对选中的条目加 SWA 窗口做注意力，然后是逆 RoPE、BF16 的分组 wo_a、行并行的 wo_b，最后 all-reduce。</desc><path class="flow-comm" d="M94 904H266L274 917L266 930H94L86 917Z"/><text text-anchor="middle"><tspan x="180" y="921.0">all-reduce [T,d]</tspan></text><rect class="flow-box" x="66" y="862" width="228" height="26" rx="3"/><text text-anchor="middle"><tspan x="180" y="879.0">wo_b [d,g·1024]（行并行）</tspan></text><rect class="flow-box" x="66" y="806" width="228" height="40" rx="3"/><text text-anchor="middle"><tspan x="180" y="823.0">wo_a 分组 [g,1024,4096] BF16</tspan><tspan x="180" y="837.0">→ [T,g·1024]</tspan></text><rect class="flow-box" x="66" y="764" width="228" height="26" rx="3"/><text text-anchor="middle"><tspan x="180" y="781.0">对 o[…,−64:] 做逆 RoPE</tspan></text><rect class="flow-box" x="6" y="708" width="348" height="40" rx="3"/><text text-anchor="middle"><tspan x="180" y="725.0">FlashMLA 稀疏 MQA，K = V = latent，attn_sink</tspan><tspan x="180" y="739.0">keys = 取来的 K_sel 条 + W_eff 条 SWA → o [T,h,512]</tspan></text><rect class="flow-opt" x="198" y="638" width="156" height="54" rx="3"/><text class="flow-opt-text" text-anchor="middle"><tspan x="276" y="655.0">idx [T,512]</tspan><tspan x="276" y="669.0" class="flow-quiet">（Reuse 层读</tspan><tspan x="276" y="683.0" class="flow-quiet">topk_src 那层的 idx）</tspan></text><rect class="flow-opt" x="198" y="540" width="156" height="82" rx="3"/><text class="flow-opt-text" text-anchor="middle"><tspan x="276" y="557.0">打分 s =</tspan><tspan x="276" y="571.0">Σ_h w_h·relu(q_h·k)</tspan><tspan x="276" y="585.0">扫 N_c（Full）</tspan><tspan x="276" y="599.0">或 P_c（Reindex）</tspan><tspan x="276" y="613.0">→ 前 512 的 idx [T,512]</tspan></text><rect class="flow-opt" x="198" y="456" width="156" height="68" rx="3"/><text class="flow-opt-text" text-anchor="middle"><tspan x="276" y="473.0">q_lat → 索引器 Q：</tspan><tspan x="276" y="487.0">wq_b_I [4096,1280]</tspan><tspan x="276" y="501.0" class="flow-quiet">（32 头全算，复制）</tspan><tspan x="276" y="515.0">→ [T,32,128]</tspan></text><rect class="flow-opt" x="198" y="406" width="156" height="40" rx="3"/><text class="flow-opt-text" text-anchor="middle"><tspan x="276" y="423.0">x → weights_proj [32,d]</tspan><tspan x="276" y="437.0">→ w [T,32]</tspan></text><rect class="flow-opt" x="198" y="342" width="156" height="54" rx="3"/><text class="flow-opt-text" text-anchor="middle"><tspan x="276" y="359.0">索引器 K：wk [128,512]</tspan><tspan x="276" y="373.0">→ k_norm，RoPE，FP4</tspan><tspan x="276" y="387.0">→ [T/m,128]（68 B）</tspan></text><rect class="flow-opt" x="198" y="216" width="156" height="110" rx="3"/><text class="flow-opt-text" text-anchor="middle"><tspan x="276" y="233.0">x → 压缩器：</tspan><tspan x="276" y="247.0">wkv（+wgate）[512,d] BF16</tspan><tspan x="276" y="261.0">→ 池化 m 个 token</tspan><tspan x="276" y="275.0" class="flow-quiet">（softmax gate）</tspan><tspan x="276" y="289.0">→ RMSNorm，RoPE</tspan><tspan x="276" y="303.0">→ [T/m,512]</tspan><tspan x="276" y="317.0">→ extra cache（584 B）</tspan></text><rect class="flow-box" x="6" y="216" width="172" height="54" rx="3"/><text text-anchor="middle"><tspan x="92" y="233.0">wq_b [h·512,1280]</tspan><tspan x="92" y="247.0">→ q [T,h,512] + RoPE</tspan><tspan x="92" y="261.0">补零到 h_k = 64</tspan></text><rect class="flow-box" x="6" y="174" width="172" height="26" rx="3"/><text text-anchor="middle"><tspan x="92" y="191.0">q_norm → q_lat [T,1280]</tspan></text><rect class="flow-box" x="198" y="118" width="156" height="68" rx="3"/><text text-anchor="middle"><tspan x="276" y="135.0">wkv → kv_norm</tspan><tspan x="276" y="149.0">+ RoPE（后 64 维）</tspan><tspan x="276" y="163.0">→ SWA KV [T,512]</tspan><tspan x="276" y="177.0">→ SWA 环（584 B/条）</tspan></text><rect class="flow-box" x="6" y="118" width="172" height="40" rx="3"/><text text-anchor="middle"><tspan x="92" y="135.0">wq_a [1280,d] + wkv [512,d]</tspan><tspan x="92" y="149.0" class="flow-quiet">（复制，融合成一个）</tspan></text><rect class="flow-box" x="6" y="48" width="348" height="54" rx="3"/><text text-anchor="middle"><tspan x="180" y="65.0">mHC 边界：残差更新 + 系数</tspan><tspan x="180" y="79.0">（24 = A4+B16+C4，Sinkhorn 20 次）</tspan><tspan x="180" y="93.0">+ 用 A_(l−1) 混合输入 + attn_norm → x [T,d]</tspan></text><rect class="flow-box" x="6" y="6" width="348" height="26" rx="3"/><text text-anchor="middle"><tspan x="180" y="23.0">X_l [T,4,d]（mHC 流）+ Y_(l−1) [T,d]</tspan></text><text class="flow-quiet" x="354" y="210" text-anchor="end" font-size="10">虚线：只有 Full 模式有</text><path class="flow-edge" d="M180 32L180 48"/><path class="flow-head" d="M180 48L176.8 42.0L183.2 42.0Z"/><path class="flow-edge" d="M92 102L92 118"/><path class="flow-head" d="M92 118L88.8 112.0L95.2 112.0Z"/><path class="flow-edge" d="M178 138L198 138"/><path class="flow-head" d="M198 138L192.0 141.2L192.0 134.8Z"/><path class="flow-edge" d="M92 158L92 174"/><path class="flow-head" d="M92 174L88.8 168.0L95.2 168.0Z"/><path class="flow-edge" d="M92 200L92 216"/><path class="flow-head" d="M92 216L88.8 210.0L95.2 210.0Z"/><path class="flow-edge" d="M92 270L92 708"/><path class="flow-head" d="M92 708L88.8 702.0L95.2 702.0Z"/><path class="flow-edge" d="M354 152L358 152L358 708"/><path class="flow-head" d="M358 708L354.8 702.0L361.2 702.0Z"/><path class="flow-edge flow-edge-opt" d="M276 326L276 342"/><path class="flow-head flow-head-opt" d="M276 342L272.8 336.0L279.2 336.0Z"/><path class="flow-edge flow-edge-opt" d="M198 369H189"/><path class="flow-edge flow-edge-opt" d="M198 426H189"/><path class="flow-edge flow-edge-opt" d="M198 490H189"/><path class="flow-edge flow-edge-opt" d="M189 369L189 581L198 581"/><path class="flow-head flow-head-opt" d="M198 581L192.0 584.2L192.0 577.8Z"/><path class="flow-edge flow-edge-opt" d="M276 622L276 638"/><path class="flow-head flow-head-opt" d="M276 638L272.8 632.0L279.2 632.0Z"/><path class="flow-edge" d="M276 692L276 708"/><path class="flow-head" d="M276 708L272.8 702.0L279.2 702.0Z"/><path class="flow-edge" d="M180 748L180 764"/><path class="flow-head" d="M180 764L176.8 758.0L183.2 758.0Z"/><path class="flow-edge" d="M180 790L180 806"/><path class="flow-head" d="M180 806L176.8 800.0L183.2 800.0Z"/><path class="flow-edge" d="M180 846L180 862"/><path class="flow-head" d="M180 862L176.8 856.0L183.2 856.0Z"/><path class="flow-edge" d="M180 888L180 904"/><path class="flow-head" d="M180 904L176.8 898.0L183.2 898.0Z"/></svg>
+<svg class="flow-svg" viewBox="0 0 360 936" role="img" aria-labelledby="v41-block-attn-zh-title v41-block-attn-zh-desc" font-size="11">
+<title id="v41-block-attn-zh-title">一个块的注意力半边</title>
+<desc id="v41-block-attn-zh-desc">第 l 层，CSA2 注意力。4 条 mHC 流 X_l 和上一子层的输出进入 mHC 边界：更新残差，用 20 次 Sinkhorn 算出 24 个系数，混合输入，做 attn_norm，得到 x。一个复制、融合的 GEMM 同时算 wq_a 和 wkv。wkv 经过 kv_norm 和 RoPE 写进 SWA 环；wq_a 经过 q_norm 得到 query latent，再经 wq_b 得到每卡 8 个头，加 RoPE，补零到 64 个头。虚线框只在 Full 模式里跑：压缩器把 m 个 token 池化成一条压缩条目，索引器 K 投影它，再算索引器权重和索引器 Q，打分是按头加权的 relu(q·k) 之和，扫所有可见条目，留下前 512 个下标。Reuse 层读它的 topk_src 那一层的下标。FlashMLA 稀疏 MQA 对选中的条目加 SWA 窗口做注意力，然后是逆 RoPE、BF16 的分组 wo_a、行并行的 wo_b，最后 all-reduce。</desc>
+<path class="flow-comm" d="M94 904H266L274 917L266 930H94L86 917Z"/>
+<text text-anchor="middle"><tspan x="180" y="921.0">all-reduce [T,d]</tspan></text>
+<rect class="flow-box" x="66" y="862" width="228" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="180" y="879.0">wo_b [d,g·1024]（行并行）</tspan></text>
+<rect class="flow-box" x="66" y="806" width="228" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="180" y="823.0">wo_a 分组 [g,1024,4096] BF16</tspan><tspan x="180" y="837.0">→ [T,g·1024]</tspan></text>
+<rect class="flow-box" x="66" y="764" width="228" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="180" y="781.0">对 o[…,−64:] 做逆 RoPE</tspan></text>
+<rect class="flow-box" x="6" y="708" width="348" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="180" y="725.0">FlashMLA 稀疏 MQA，K = V = latent，attn_sink</tspan><tspan x="180" y="739.0">keys = 取来的 K_sel 条 + W_eff 条 SWA → o [T,h,512]</tspan></text>
+<rect class="flow-opt" x="198" y="638" width="156" height="54" rx="3"/>
+<text text-anchor="middle"><tspan x="276" y="655.0">idx [T,512]</tspan><tspan x="276" y="669.0" class="flow-quiet">（Reuse 层读</tspan><tspan x="276" y="683.0" class="flow-quiet">topk_src 那层的 idx）</tspan></text>
+<rect class="flow-opt" x="198" y="540" width="156" height="82" rx="3"/>
+<text text-anchor="middle"><tspan x="276" y="557.0">打分 s =</tspan><tspan x="276" y="571.0">Σ_h w_h·relu(q_h·k)</tspan><tspan x="276" y="585.0">扫 N_c（Full）</tspan><tspan x="276" y="599.0">或 P_c（Reindex）</tspan><tspan x="276" y="613.0">→ 前 512 的 idx [T,512]</tspan></text>
+<rect class="flow-opt" x="198" y="456" width="156" height="68" rx="3"/>
+<text text-anchor="middle"><tspan x="276" y="473.0">q_lat → 索引器 Q：</tspan><tspan x="276" y="487.0">wq_b_I [4096,1280]</tspan><tspan x="276" y="501.0" class="flow-quiet">（32 头全算，复制）</tspan><tspan x="276" y="515.0">→ [T,32,128]</tspan></text>
+<rect class="flow-opt" x="198" y="406" width="156" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="276" y="423.0">x → weights_proj [32,d]</tspan><tspan x="276" y="437.0">→ w [T,32]</tspan></text>
+<rect class="flow-opt" x="198" y="342" width="156" height="54" rx="3"/>
+<text text-anchor="middle"><tspan x="276" y="359.0">索引器 K：wk [128,512]</tspan><tspan x="276" y="373.0">→ k_norm，RoPE，FP4</tspan><tspan x="276" y="387.0">→ [T/m,128]（68 B）</tspan></text>
+<rect class="flow-opt" x="198" y="216" width="156" height="110" rx="3"/>
+<text text-anchor="middle"><tspan x="276" y="233.0">x → 压缩器：</tspan><tspan x="276" y="247.0">wkv（+wgate）[512,d] BF16</tspan><tspan x="276" y="261.0">→ 池化 m 个 token</tspan><tspan x="276" y="275.0" class="flow-quiet">（softmax gate）</tspan><tspan x="276" y="289.0">→ RMSNorm，RoPE</tspan><tspan x="276" y="303.0">→ [T/m,512]</tspan><tspan x="276" y="317.0">→ extra cache（584 B）</tspan></text>
+<rect class="flow-box" x="6" y="216" width="172" height="54" rx="3"/>
+<text text-anchor="middle"><tspan x="92" y="233.0">wq_b [h·512,1280]</tspan><tspan x="92" y="247.0">→ q [T,h,512] + RoPE</tspan><tspan x="92" y="261.0">补零到 h_k = 64</tspan></text>
+<rect class="flow-box" x="6" y="174" width="172" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="92" y="191.0">q_norm → q_lat [T,1280]</tspan></text>
+<rect class="flow-box" x="198" y="118" width="156" height="68" rx="3"/>
+<text text-anchor="middle"><tspan x="276" y="135.0">wkv → kv_norm</tspan><tspan x="276" y="149.0">+ RoPE（后 64 维）</tspan><tspan x="276" y="163.0">→ SWA KV [T,512]</tspan><tspan x="276" y="177.0">→ SWA 环（584 B/条）</tspan></text>
+<rect class="flow-box" x="6" y="118" width="172" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="92" y="135.0">wq_a [1280,d] + wkv [512,d]</tspan><tspan x="92" y="149.0" class="flow-quiet">（复制，融合成一个）</tspan></text>
+<rect class="flow-box" x="6" y="48" width="348" height="54" rx="3"/>
+<text text-anchor="middle"><tspan x="180" y="65.0">mHC 边界：残差更新 + 系数</tspan><tspan x="180" y="79.0">（24 = A4+B16+C4，Sinkhorn 20 次）</tspan><tspan x="180" y="93.0">+ 用 A_(l−1) 混合输入 + attn_norm → x [T,d]</tspan></text>
+<rect class="flow-box" x="6" y="6" width="348" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="180" y="23.0">X_l [T,4,d]（mHC 流）+ Y_(l−1) [T,d]</tspan></text>
+<text class="flow-quiet" x="354" y="210" text-anchor="end" font-size="10">虚线：只有 Full 模式有</text>
+<path class="flow-edge" d="M180 32L180 48"/><path class="flow-head" d="M180 48L176.8 42.0L183.2 42.0Z"/>
+<path class="flow-edge" d="M92 102L92 118"/><path class="flow-head" d="M92 118L88.8 112.0L95.2 112.0Z"/>
+<path class="flow-edge" d="M178 138L198 138"/><path class="flow-head" d="M198 138L192.0 141.2L192.0 134.8Z"/>
+<path class="flow-edge" d="M92 158L92 174"/><path class="flow-head" d="M92 174L88.8 168.0L95.2 168.0Z"/>
+<path class="flow-edge" d="M92 200L92 216"/><path class="flow-head" d="M92 216L88.8 210.0L95.2 210.0Z"/>
+<path class="flow-edge" d="M92 270L92 708"/><path class="flow-head" d="M92 708L88.8 702.0L95.2 702.0Z"/>
+<path class="flow-edge" d="M354 152L358 152L358 708"/><path class="flow-head" d="M358 708L354.8 702.0L361.2 702.0Z"/>
+<path class="flow-edge flow-edge-opt" d="M276 326L276 342"/><path class="flow-head flow-head-opt" d="M276 342L272.8 336.0L279.2 336.0Z"/>
+<path class="flow-edge flow-edge-opt" d="M198 369H189"/>
+<path class="flow-edge flow-edge-opt" d="M198 426H189"/>
+<path class="flow-edge flow-edge-opt" d="M198 490H189"/>
+<path class="flow-edge flow-edge-opt" d="M189 369L189 581L198 581"/><path class="flow-head flow-head-opt" d="M198 581L192.0 584.2L192.0 577.8Z"/>
+<path class="flow-edge flow-edge-opt" d="M276 622L276 638"/><path class="flow-head flow-head-opt" d="M276 638L272.8 632.0L279.2 632.0Z"/>
+<path class="flow-edge" d="M276 692L276 708"/><path class="flow-head" d="M276 708L272.8 702.0L279.2 702.0Z"/>
+<path class="flow-edge" d="M180 748L180 764"/><path class="flow-head" d="M180 764L176.8 758.0L183.2 758.0Z"/>
+<path class="flow-edge" d="M180 790L180 806"/><path class="flow-head" d="M180 806L176.8 800.0L183.2 800.0Z"/>
+<path class="flow-edge" d="M180 846L180 862"/><path class="flow-head" d="M180 862L176.8 856.0L183.2 856.0Z"/>
+<path class="flow-edge" d="M180 888L180 904"/><path class="flow-head" d="M180 904L176.8 898.0L183.2 898.0Z"/>
+</svg>
 <figcaption>一个块的注意力半边。虚线是 Full 模式多出来的（第 2、8、14、20 层）。Reindex 层只留索引器 Q、weights_proj 和打分，扫的是候选池。Reuse 层这些都不做，直接读 topk_src 的 idx。</figcaption>
 </figure>
 
 <figure class="flow">
-<svg class="flow-svg" viewBox="0 0 360 416" role="img" aria-labelledby="v41-block-moe-zh-title v41-block-moe-zh-desc" font-size="11"><title id="v41-block-moe-zh-title">一个块的 MoE 半边</title><desc id="v41-block-moe-zh-desc">注意力的 all-reduce 之后，是注意力和 FFN 之间的 mHC 边界，做 ffn_norm，得到 x2。router 是复制在每张卡上的 BF16 GEMM，用 sqrtsoftplus 打分、加选择用的 bias，选前 6 个专家，归一，乘 1.5。基线里 dispatch 是空的，另一种做法是 DeepEP 的 all-to-all。每张卡放 48 个路由专家，MXFP4，按 W4A16 跑：w1 和 w3、限幅 10 的 SwiGLU、w2。共享专家用 FP8，按 TP 切，每卡 288。combine 在基线里是一次 all-reduce，另一种是 all-to-all combine，得到 Y_l，交给下一个 mHC 边界。</desc><rect class="flow-box" x="66" y="384" width="228" height="26" rx="3"/><text text-anchor="middle"><tspan x="180" y="401.0">Y_l [T,d] → 下一个 mHC 边界</tspan></text><path class="flow-comm" d="M44 328H316L324 348L316 368H44L36 348Z"/><text text-anchor="middle"><tspan x="180" y="345.0">combine：all-reduce [T,d]（基线）</tspan><tspan x="180" y="359.0" class="flow-quiet">/ A2A combine</tspan></text><rect class="flow-box" x="6" y="230" width="204" height="82" rx="3"/><text text-anchor="middle"><tspan x="108" y="247.0">路由专家，每卡 48 个，</tspan><tspan x="108" y="261.0">MXFP4 W4A16：</tspan><tspan x="108" y="275.0">w1+w3 [2×2304,d]</tspan><tspan x="108" y="289.0">→ SwiGLU 限幅 10</tspan><tspan x="108" y="303.0">→ w2 [d,2304]</tspan></text><path class="flow-comm" d="M22 174H194L202 194L194 214H22L14 194Z"/><text text-anchor="middle"><tspan x="108" y="191.0">dispatch</tspan><tspan x="108" y="205.0" class="flow-quiet">（基线里没有 / DeepEP A2A）</tspan></text><rect class="flow-box" x="226" y="104" width="128" height="54" rx="3"/><text text-anchor="middle"><tspan x="290" y="121.0">共享专家</tspan><tspan x="290" y="135.0">FP8，按 TP 切</tspan><tspan x="290" y="149.0">每卡 288</tspan></text><rect class="flow-box" x="6" y="104" width="204" height="54" rx="3"/><text text-anchor="middle"><tspan x="108" y="121.0">router [384,d] BF16</tspan><tspan x="108" y="135.0">sqrtsoftplus + bias，选前 6，</tspan><tspan x="108" y="149.0">归一，×1.5</tspan></text><rect class="flow-box" x="6" y="48" width="348" height="40" rx="3"/><text text-anchor="middle"><tspan x="180" y="65.0">mHC 边界（attn 后 / ffn 前）</tspan><tspan x="180" y="79.0">+ ffn_norm → x2 [T,d]</tspan></text><path class="flow-comm" d="M94 6H266L274 19L266 32H94L86 19Z"/><text text-anchor="middle"><tspan x="180" y="23.0">all-reduce [T,d]（接上图）</tspan></text><path class="flow-edge" d="M180 32L180 48"/><path class="flow-head" d="M180 48L176.8 42.0L183.2 42.0Z"/><path class="flow-edge" d="M108 88L108 104"/><path class="flow-head" d="M108 104L104.8 98.0L111.2 98.0Z"/><path class="flow-edge" d="M290 88L290 104"/><path class="flow-head" d="M290 104L286.8 98.0L293.2 98.0Z"/><path class="flow-edge" d="M108 158L108 174"/><path class="flow-head" d="M108 174L104.8 168.0L111.2 168.0Z"/><path class="flow-edge" d="M108 214L108 230"/><path class="flow-head" d="M108 230L104.8 224.0L111.2 224.0Z"/><path class="flow-edge" d="M108 312L108 328"/><path class="flow-head" d="M108 328L104.8 322.0L111.2 322.0Z"/><path class="flow-edge" d="M290 158L290 328"/><path class="flow-head" d="M290 328L286.8 322.0L293.2 322.0Z"/><path class="flow-edge" d="M180 368L180 384"/><path class="flow-head" d="M180 384L176.8 378.0L183.2 378.0Z"/></svg>
+<svg class="flow-svg" viewBox="0 0 360 416" role="img" aria-labelledby="v41-block-moe-zh-title v41-block-moe-zh-desc" font-size="11">
+<title id="v41-block-moe-zh-title">一个块的 MoE 半边</title>
+<desc id="v41-block-moe-zh-desc">注意力的 all-reduce 之后，是注意力和 FFN 之间的 mHC 边界，做 ffn_norm，得到 x2。router 是复制在每张卡上的 BF16 GEMM，用 sqrtsoftplus 打分、加选择用的 bias，选前 6 个专家，归一，乘 1.5。基线里 dispatch 是空的，另一种做法是 DeepEP 的 all-to-all。每张卡放 48 个路由专家，MXFP4，按 W4A16 跑：w1 和 w3、限幅 10 的 SwiGLU、w2。共享专家用 FP8，按 TP 切，每卡 288。combine 在基线里是一次 all-reduce，另一种是 all-to-all combine，得到 Y_l，交给下一个 mHC 边界。</desc>
+<rect class="flow-box" x="66" y="384" width="228" height="26" rx="3"/>
+<text text-anchor="middle"><tspan x="180" y="401.0">Y_l [T,d] → 下一个 mHC 边界</tspan></text>
+<path class="flow-comm" d="M44 328H316L324 348L316 368H44L36 348Z"/>
+<text text-anchor="middle"><tspan x="180" y="345.0">combine：all-reduce [T,d]（基线）</tspan><tspan x="180" y="359.0" class="flow-quiet">/ A2A combine</tspan></text>
+<rect class="flow-box" x="6" y="230" width="204" height="82" rx="3"/>
+<text text-anchor="middle"><tspan x="108" y="247.0">路由专家，每卡 48 个，</tspan><tspan x="108" y="261.0">MXFP4 W4A16：</tspan><tspan x="108" y="275.0">w1+w3 [2×2304,d]</tspan><tspan x="108" y="289.0">→ SwiGLU 限幅 10</tspan><tspan x="108" y="303.0">→ w2 [d,2304]</tspan></text>
+<path class="flow-comm" d="M22 174H194L202 194L194 214H22L14 194Z"/>
+<text text-anchor="middle"><tspan x="108" y="191.0">dispatch</tspan><tspan x="108" y="205.0" class="flow-quiet">（基线里没有 / DeepEP A2A）</tspan></text>
+<rect class="flow-box" x="226" y="104" width="128" height="54" rx="3"/>
+<text text-anchor="middle"><tspan x="290" y="121.0">共享专家</tspan><tspan x="290" y="135.0">FP8，按 TP 切</tspan><tspan x="290" y="149.0">每卡 288</tspan></text>
+<rect class="flow-box" x="6" y="104" width="204" height="54" rx="3"/>
+<text text-anchor="middle"><tspan x="108" y="121.0">router [384,d] BF16</tspan><tspan x="108" y="135.0">sqrtsoftplus + bias，选前 6，</tspan><tspan x="108" y="149.0">归一，×1.5</tspan></text>
+<rect class="flow-box" x="6" y="48" width="348" height="40" rx="3"/>
+<text text-anchor="middle"><tspan x="180" y="65.0">mHC 边界（attn 后 / ffn 前）</tspan><tspan x="180" y="79.0">+ ffn_norm → x2 [T,d]</tspan></text>
+<path class="flow-comm" d="M94 6H266L274 19L266 32H94L86 19Z"/>
+<text text-anchor="middle"><tspan x="180" y="23.0">all-reduce [T,d]（接上图）</tspan></text>
+<path class="flow-edge" d="M180 32L180 48"/><path class="flow-head" d="M180 48L176.8 42.0L183.2 42.0Z"/>
+<path class="flow-edge" d="M108 88L108 104"/><path class="flow-head" d="M108 104L104.8 98.0L111.2 98.0Z"/>
+<path class="flow-edge" d="M290 88L290 104"/><path class="flow-head" d="M290 104L286.8 98.0L293.2 98.0Z"/>
+<path class="flow-edge" d="M108 158L108 174"/><path class="flow-head" d="M108 174L104.8 168.0L111.2 168.0Z"/>
+<path class="flow-edge" d="M108 214L108 230"/><path class="flow-head" d="M108 230L104.8 224.0L111.2 224.0Z"/>
+<path class="flow-edge" d="M108 312L108 328"/><path class="flow-head" d="M108 328L104.8 322.0L111.2 322.0Z"/>
+<path class="flow-edge" d="M290 158L290 328"/><path class="flow-head" d="M290 328L286.8 322.0L293.2 322.0Z"/>
+<path class="flow-edge" d="M180 368L180 384"/><path class="flow-head" d="M180 384L176.8 378.0L183.2 378.0Z"/>
+</svg>
 <figcaption>一个块的 MoE 半边。两头尖的框是通信。</figcaption>
 </figure>
 
@@ -322,3 +454,54 @@ checkpoint 是 FP8，32 × 32 的块，UE8M0 scale，激活 scale 动态算；�
 - **DSpark 草稿器**（`mtp.*`，基线里不加载）。3 个只有 SWA 的块，MQA 维度和主干一样；MoE 是 128 个路由专家选 3，一个共享专家，FFN 2304；`main_proj` `[5120,15360]` FP8，输入是第 37、38、39 层隐状态拼起来；5 个草稿位置，所以验证窗口是 6；一个秩 256 的 Markov head 和一个置信度 head `[1,5376]`。`mtp.*` 在盘上是 7.93 GB。开 DSpark 时，SWA 缓存每个请求多 $3\cdot 128\cdot 584$ B（SGLang 里怎么分配没验证）。
 - **视觉**（不在文本的 roofline 路径上）。DeepSeek-ViT，32 层，宽 1024，16 头，MLP 2816，patch 14，3 × 3 的 pixel unshuffle，aligner 是 BF16 的 `[5120,9216]` 和 `[5120,5120]`，最多 1024 个图像 token。
 - **KV 缓存的其余部分。** 压缩比 2 的 Full 层每个请求留一个小的压缩状态环（这里没算大小）。分页的 SWA 池把页跨度补到 576 B 的倍数。V4.1 的设计只把全局 KV 存到 SSD 上，不存 SWA。
+
+## 来源
+
+下面的"笔记"是我自己在 SGLang 上部署这只模型到 H20 的笔记，没有公开，按行号引（L…）；"报告"是 DeepSeek-V4.1-Flash 的技术报告，按行号或 PDF 页码引。SGLang 是上面那个固定的 SHA。
+
+<details>
+<summary>每一条出自哪里</summary>
+
+| 内容 | 来源 |
+|---|---|
+| 版本 `2cba9e42…` | 笔记 L19 |
+| 维度：隐藏维 5120，40 层，词表 129280，64 头，头维 512，q 秩 1280，8 个输出组每组 1024，窗口 128，top-k 512，索引器 32 × 128，专家 384 / 选 6 / 2304，mHC 4 条流，Sinkhorn 20 次 | `config.json`；报告 L1247–1276 |
+| `compress_ratios`、`kv_source_layer_ids`、`index_source_layer_ids`、`candidate_source_layer_id`、2048 块 × 8、`engram_layer_ids` | `config.json`；报告 L1249–1258、L1266、图 3（第 7 页） |
+| 张量形状和类型，551.9B 和 196.6B 参数，checkpoint 大小 | safetensors 头，`model.safetensors.index.json`；报告 L403 |
+| decode 激活 16B，"prefill 8B" | 报告 L404 |
+| 没有稠密 FFN，没有哈希路由 | `config.json`，分片头；报告 L1269–1270；我之前的 V4 笔记 L145（V4 的哈希路由） |
+| mHC 流量 $(2n+2)d$、$(3n+2)d$、$(4n+4)d$；Single-Pass | 报告 L743–748、L742–743、L707–711、L729–736 |
+| 24 个混合系数；用 `hc_combine` 合流，没有 `hc_head` | SGLang `deepseek_v4.py` `make_hc_mixing_params`、`hc_pre_from_prev_sublayer`；分片头 |
+| MQA，K = V，一个 KV 头；输出做逆 RoPE | SGLang `deepseek_v4.py` `MQALayer`（RadixAttention，`num_kv_heads=1`）、`fused_rope_inplace(..., inverse=True)` |
+| `wo_a` 是 einsum `tgd,grd->tgr`；`wo_a` 用 BF16 | SGLang；`wo_a_fp8_gemm_enabled()` 要求 `weight_block_size == [128,128]` |
+| 头补到 64 | SGLang `MqaAttentionBase._kernel_num_heads` |
+| 不同层的 RoPE | `config.json` `rope_theta`、`compress_rope_theta`、`rope_scaling`；SGLang `MqaAttentionBase` |
+| 压缩器怎么池化；索引器 K 来自压缩后的 latent | SGLang `dsv41_sparse.py` `DeepseekV41Compressor`；报告 L572–577、L576 |
+| CED：第 20 层压缩的是编码器输出 | 报告 L482–489 式 (1)、L640–642 |
+| 索引器打分、头复制、只有第 20 层之后用候选池 | SGLang `dsv41_sparse.py` `DeepseekV41Indexer`（`scores`、docstring、`uses_candidates`）；报告 L653 |
+| 只有 kv_src 层自己存压缩 KV | SGLang `collect_sources_by_ratio` |
+| SM90 上用 V4 布局，每条 584 B，页跨度 576 B | SGLang `deepseek_v4_memory_pool.py` `select_dsv4_kv_layout()`、`kv_layout.py` `KVLayout.V4`、`KVLayout.page_bytes`；笔记 L142（`SGLANG_DSV4_KV_LAYOUT=v4`） |
+| 索引器 K 68 B，强制 FP4 | SGLang `get_dsv4_indexer_bytes_per_token(128, fp4=True)`、`pool_configurator.py` `DSV4PoolConfigurator` |
+| 每个上下文 token 1630 B | SGLang `DSV4PoolConfigurator._compressed_bytes_per_full_token`；笔记 L146 |
+| 报告的 FP4 KV 设计，288 B；SWA 用 FP8 | 报告 L798–826（L810–812、L824–825） |
+| SWA 池的预留，cap 模式 | SGLang `pool_configurator.py` `compute_swa_request_cap`、`DSV4PoolConfigurator._resolve_swa_cap_tokens`、`_get_bytes_per_swa_token`；`SGLANG_SWA_EVICTION_INTERVAL` |
+| 退回比例模式，每 token 2336 B | SGLang `DSV4_DEFAULT_SWA_FULL_TOKENS_RATIO = 0.1`、`_get_bytes_per_full_token`；笔记 L146 |
+| 压缩比 2 的压缩状态环 | SGLang `get_compress_state_ring_size(2)` |
+| M ≥ 64 时用 BF16 缓存 | `SGLANG_OPT_HOPPER_BLOCK_FP8_BF16=1`；笔记 L142、L245 |
+| BF16 缓存 2.5 GiB，R = 256 时 SWA 约 13 GiB，Engram 每卡约 23.6 GiB，不开投机时不加载 `mtp.*` | 笔记 L146 |
+| 路由专家默认 W4A16，加开关是 W4A8 | 笔记 L23、L43、L144、L257 |
+| 基线：TP 8，EP 8，不开 DP attention；A2A 是 none；bounded replay 关，不开投机 | 笔记 L22、L144、L24 |
+| DSpark 开关 `--speculative-algorithm DSPARK --speculative-dspark-block-size 5`；验证窗口 6 | 笔记 L279 |
+| SM90 不接受 FP4 索引器开关 | SGLang `serving_hook.py` L428 |
+| SM90 上的 mHC：#42245 已合，#40891 没合 | 笔记 L318 |
+| 验证用的索引器扫配置的容量（#40945 没合） | 笔记 L296 |
+| "main cache" 和 "extra cache" | 笔记 L323 |
+| `late_layer_start = max(kv_source) + 1 = 21` | SGLang |
+| Engram 在层之前、作用在残差上；n-gram 阶数、8 个头、两张表、没有短卷积 | SGLang `DeepseekV4Model.forward` L4067–4087；报告 L762、L764、L765、L756–757 |
+| 选择用的 bias：`bias` / `bias_vl` | 报告 L455–463 |
+| DSpark 草稿器；没有经典 MTP | 报告 L776–796、L782–783、L425–427 |
+| 视觉塔，3 × 3 unshuffle | `config.json` `vision_config`；报告 L1274–1276、L449 |
+| 全局 KV 存 SSD，SWA 不存 | 报告 L1095–1106 |
+| 共享专家按 TP 切；Engram `wkv` 在 BF16 缓存里；embed / head 按词表切分 | 推出来的（BF16 缓存的总和；SGLang 的惯常做法） |
+
+</details>
