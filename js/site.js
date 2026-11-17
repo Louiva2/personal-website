@@ -114,10 +114,15 @@
     return node;
   }
 
-  // Published posts of one series, by issue number.
+  // A post marked unlisted has its page, but no list, contents, card, ledger or pager shows it.
+  function listed(post) {
+    return post.unlisted !== true;
+  }
+
+  // Published posts of one series, by issue number. Unlisted posts are left out.
   function seriesPosts(key) {
     return (root.SITE_POSTS || [])
-      .filter((post) => post.series === key)
+      .filter((post) => listed(post) && post.series === key)
       .sort((a, b) => a.no - b.no);
   }
 
@@ -135,6 +140,7 @@
 
   function sortedPosts() {
     return (root.SITE_POSTS || [])
+      .filter(listed)
       .map((post, index) => ({ post, index }))
       .sort((a, b) => {
         if (a.post.date === b.post.date) return a.index - b.index;
@@ -398,7 +404,9 @@
         const kicker = el("p", "kicker");
         const home = el("a", null, seriesName(series));
         home.href = seriesUrl(series);
-        kicker.append(home, document.createTextNode(` · ${issueLabel(series, info.no)}`));
+        // An unlisted post has no issue number yet: the series name alone.
+        if (info.no !== undefined) kicker.append(home, document.createTextNode(` · ${issueLabel(series, info.no)}`));
+        else kicker.append(home);
         header.append(kicker);
       }
       if (date) {

@@ -417,6 +417,13 @@ h2::after {
   font-size: 0.88em;
 }
 
+/* A long identifier in running text (a commit hash, say) breaks rather than widen the page.
+   Not in table cells: a table scrolls instead. */
+.prose p > code,
+.prose li > code {
+  overflow-wrap: anywhere;
+}
+
 .prose pre {
   margin: 0 0 1.45em;
   padding: 1rem 1.05rem;
@@ -946,6 +953,72 @@ a.toc-row:focus-visible .toc-title {
 
 .roof-accent {
   fill: var(--link);
+}
+
+/* Flow diagrams inside a post (boxes and arrows, hand-written inline SVG). They are drawn
+   360 wide with 11-unit text, the same scale as .roof-narrow, so one drawing serves phones
+   and is capped on wide screens instead of blown up. Colors come from the page. */
+.prose .flow svg {
+  width: 100%;
+  max-width: 28rem;
+  height: auto;
+  overflow: visible;
+  fill: currentColor;
+}
+
+.flow-box {
+  fill: var(--wash);
+  stroke: var(--muted);
+  stroke-width: 0.8;
+}
+
+/* Runs only in some layers: dashed, no fill. */
+.flow-opt {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 0.9;
+  stroke-dasharray: 4 3;
+}
+
+/* Communication: a pointed box in the link color. */
+.flow-comm {
+  fill: var(--paper);
+  stroke: var(--link);
+  stroke-width: 1.3;
+}
+
+/* A cache. */
+.flow-store {
+  fill: var(--surface);
+  stroke: var(--muted);
+  stroke-width: 0.8;
+}
+
+.flow-store-rim {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 0.8;
+}
+
+.flow-edge {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+
+.flow-edge-opt {
+  stroke: var(--muted);
+  stroke-dasharray: 3 3;
+}
+
+.flow-head {
+  fill: currentColor;
+}
+
+.flow-head-opt,
+.flow-quiet {
+  fill: var(--muted);
 }
 
 /* The ledger on the roofline page. */

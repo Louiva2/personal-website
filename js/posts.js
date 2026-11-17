@@ -10,12 +10,28 @@
 //   ledger: { model: "模型名", gpu: "卡", precision: "fp16", unit: "tok/s", bound: 150, measured: 120 }
 // bound 是纸上算出的上界，measured 是实测，同一个单位；"到边"那一列由这两个数算出来。
 //
+// 还没写完、先放上去给人看链接的文章，带一项 unlisted: true：页面照样生成（中英文都有），<head> 里多一行
+// noindex, nofollow，但首页、笔记列表、栏目目录、账本、上下篇都不列它，只有知道地址的人能打开。
+// 它不占期号，也不带 ledger：写了 no 或 ledger，生成脚本会报错。正式发布时删掉 unlisted，补上 no。
+//
 // 英文版（en/ 下的那一套页面）读的也是这个文件：
 //   文章有英文版时带一项 en: { title: "…", summary: "…" }，正文放 posts/en/<slug>.md，
 //   生成脚本会多出一页 en/blog/<slug>/。没有 en 的文章在英文页上显示中文标题，链回中文页。
 //   栏目的英文名、导语、期号量词写在 titleEn、deckEn、unitEn；计划里每一期的英文写在 titleEn、noteEn，
 //   缺了就退回中文。
 globalThis.SITE_POSTS = [
+  {
+    slug: "deepseek-v41-flash-h20-architecture",
+    title: "DeepSeek-V4.1-Flash：结构和算子顺序（施工中）",
+    date: "2026-11-17",
+    summary: "在 8×H20 上给 DeepSeek-V4.1-Flash 算边之前的第一步：只列结构、形状和每个算子的 FLOPs 与字节公式，不带硬件数字，还没有预测和实测。",
+    series: "roofline",
+    unlisted: true,
+    en: {
+      title: "DeepSeek-V4.1-Flash: architecture and operator sequence (work in progress)",
+      summary: "The first step before working out the edge for DeepSeek-V4.1-Flash on 8×H20: structure, shapes, and formulas for the FLOPs and bytes of every operator. No hardware numbers, and no prediction or measurement yet.",
+    },
+  },
   {
     slug: "welcome",
     title: "写在前面",
