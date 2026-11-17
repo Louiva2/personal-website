@@ -21,6 +21,7 @@ python3 -m http.server 8080
 - 找边儿 <http://127.0.0.1:8080/roofline/>
 - 笔记（全部文章） <http://127.0.0.1:8080/blog/>
 - 项目 <http://127.0.0.1:8080/projects/>
+- 英文版 <http://127.0.0.1:8080/en/>，下面是同样的五个页面
 
 页面链接都是相对路径，所以从仓库根目录预览是通的。GitHub Pages 项目站点会多一层 `/personal-website/`。要按发布后的路径检查，在上一级目录把本仓库放成名为 `personal-website` 的文件夹（或做符号链接），再从那里启动服务器，然后打开 <http://127.0.0.1:8080/personal-website/>。
 
@@ -95,9 +96,48 @@ ledger: { model: "模型名", gpu: "卡", precision: "fp16", unit: "tok/s", boun
 
 ### 改栏目名或导语
 
-栏目的名字、英文小标题和导语在两处：`js/posts.js` 的 `SITE_SERIES`，以及栏目页自己的 HTML（没有 JavaScript 时也要看得到）。两处不一致时 `node tools/build-posts.mjs` 会报错。导航和首页卡片上的栏目名是手写的，改名时一起改：`index.html`、`weekly/`、`roofline/`、`blog/index.html`、`blog/post.html`、`projects/index.html`、`404.html`、`tools/post-template.html`。
+栏目的名字、英文小标题和导语在两处：`js/posts.js` 的 `SITE_SERIES`，以及栏目页自己的 HTML（没有 JavaScript 时也要看得到）。两处不一致时 `node tools/build-posts.mjs` 会报错。导航和首页卡片上的栏目名是手写的，改名时一起改：`index.html`、`weekly/`、`roofline/`、`blog/index.html`、`blog/post.html`、`projects/index.html`、`404.html`、`tools/post-template.html`。英文那一套见下面的"英文版"。
 
 `roofline/index.html` 里的 roofline 示意图是手写的内联 SVG，有两份：`.roof-narrow` 给手机，`.roof-wide` 给 34rem 以上的宽度，由 CSS 选一份显示。改图时两份都改。
+
+## 英文版
+
+英文是 `en/` 下的另一套页面，地址和中文一一对应：`en/`、`en/weekly/`、`en/roofline/`、`en/blog/`、`en/projects/`，文章在 `en/blog/<slug>/`。中文页的地址不变。每个页面导航的最后一项（`EN`／`中文`）通到对面的同一页。
+
+两套页面读同一份 `js/posts.js`，用同一份 `css/site.css` 和 `js/site.js`。脚本看页面的 `<html lang>` 决定写哪种语言。
+
+### 给一篇文章加英文版
+
+1. 把译文写成 `posts/en/your-slug.md`，文件名和中文那篇一样。
+2. 在 `js/posts.js` 里那一条上加一项：
+
+   ```js
+   en: { title: "English title", summary: "One or two sentences." },
+   ```
+
+3. 运行 `node tools/build-posts.mjs`，它会多生成一页 `en/blog/your-slug/`，并且让两页互相指（导航里的语言切换、`<head>` 里的 `hreflang`）。
+4. 一起提交。
+
+去掉 `en` 再运行脚本，那一页英文会被删掉。
+
+### 没有英文版的文章
+
+不需要每篇都译。没有 `en` 的文章，在英文的列表和目录里显示中文标题和摘要，后面标一个"中文"，点过去是中文页；中文页导航里的 `EN` 这时通到英文的笔记列表。英文文章里写 `[…](other-post.md)` 这样的链接，对方没有英文版时会自动指到中文页。
+
+### 栏目和计划的英文
+
+在 `SITE_SERIES` 里：
+
+- 栏目上的 `titleEn`、`deckEn` 是英文页用的名字和导语，`unitEn` 是期号的量词（`"Week"` 写成 "Week 2"，留空写成 "02"）。英文栏目页自己的 HTML 里也写着这两句，和中文页一样，不一致时生成脚本会报错。
+- `planned` 里每一期的 `titleEn`、`noteEn` 是英文的题目和说明。缺了就退回中文那两项。
+
+英文页上，标题上面那行小字放的是栏目的中文名。
+
+### 两边各手写一份的东西
+
+导航、页脚、跳到正文的链接、每页的标题和导语、插图的 `alt`、`<head>` 里的 description 和 Open Graph 标签，都是每个页面自己写的，改一边时记得看另一边。英文文章页的外壳是 `tools/post-template.en.html`。`en/roofline/index.html` 里那两份内联 SVG 的文字是另写的，位置也按英文的长度挪过，改图时四份都要看。404 页只有一页，中文下面带一行英文。
+
+英文页的分享图是 `assets/img/og-en.jpg`。
 
 ## 插图
 
@@ -123,8 +163,9 @@ ledger: { model: "模型名", gpu: "卡", precision: "fp16", unit: "tok/s", boun
 | `favicon.ico` | 16、32、48 | 不认 SVG 图标的浏览器 |
 | `apple-touch-icon.png` | 180 × 180 | 加到手机主屏时的图标，纸色底 |
 | `assets/img/og.jpg` | 1200 × 630 | 链接预览里的大图：标志、名字、首页第一句和首页那张插图 |
+| `assets/img/og-en.jpg` | 1200 × 630 | 同一张图的英文版，英文页用 |
 
-三个图标的 `<link>` 手写在每个页面的 `<head>` 里；`og.jpg` 是全站共用的一张，手写在首页、两个栏目页、笔记、项目的 `og:image` 里，文章页的由生成脚本从 `BASE_URL` 拼出来。
+三个图标的 `<link>` 手写在每个页面的 `<head>` 里；`og.jpg` 是中文页共用的一张（英文页用 `og-en.jpg`），手写在首页、两个栏目页、笔记、项目的 `og:image` 里，文章页的由生成脚本从 `BASE_URL` 拼出来。
 
 生成的页面把标题和摘要直接写进 `<title>`、description 和 Open Graph 标签，链接预览不用跑 JavaScript。这些页面里的绝对地址来自脚本里的常量 `BASE_URL`（<https://louiva2.github.io/personal-website/>）；首页、两个栏目页、笔记、项目的 canonical 和 og:url 是手写的，站点换地址时一起改。加 `--check` 只检查不写入，页面缺失或过期时以非零状态退出。旧链接 `blog/post.html?p=<slug>` 会跳到新地址。
 
@@ -141,6 +182,8 @@ ledger: { model: "模型名", gpu: "卡", precision: "fp16", unit: "tok/s", boun
 Static personal site for Yihua Liu (Louiva2). Posts are Markdown files rendered in the browser, with LaTeX via vendored KaTeX. Viewing needs no build step. Each post also gets a generated page at `blog/<slug>/` that carries its title and share-preview tags: after adding the Markdown file and its entry in `js/posts.js`, run `node tools/build-posts.mjs` (Node 18+, no dependencies) and commit the output. Their absolute URLs come from `BASE_URL` in that script; the home, notes and projects pages hard-code theirs.
 
 The site has two series, `weekly/` and `roofline/`. A post joins one by adding `series` and `no` to its entry in `js/posts.js`; issues not yet written live in `SITE_SERIES.<series>.planned` in the same file and need no Markdown. A roofline post with a `ledger` field adds a row to the ledger table on `roofline/`. The six illustrations in `assets/img/` have fixed names and sizes and must have a pure white ground, since they are multiplied onto the page. The site mark is `favicon.svg`, also shown beside the name in the header; `favicon.ico`, `apple-touch-icon.png` and the share-preview picture `assets/img/og.jpg` are rendered from it.
+
+The English pages are a second set under `en/`, one for each Chinese page, reading the same `js/posts.js`. A post gets an English page at `en/blog/<slug>/` when its entry carries `en: { title, summary }` and its translation is at `posts/en/<slug>.md`; a post without one shows its Chinese title on the English lists and links to the Chinese page. The English names of the series and of the planned issues are the `titleEn`, `deckEn`, `unitEn` and `noteEn` fields. The English share-preview picture is `assets/img/og-en.jpg`.
 
 Preview from the repository root:
 

@@ -2,6 +2,46 @@
   const root = globalThis;
   // This file sits in js/, one level below the site root, wherever the site is served from.
   const siteRoot = new URL("../", document.currentScript.src);
+  // The English pages are a second set under en/. The page says which set it belongs to.
+  const EN = /^en\b/i.test(document.documentElement.lang || "");
+  const langRoot = EN ? new URL("en/", siteRoot) : siteRoot;
+
+  // Everything this script writes into a page, in the page's language.
+  const TEXT = EN
+    ? {
+        status: { writing: "Writing", planned: "Planned" },
+        latest: "Latest",
+        noPosts: "No notes yet.",
+        chinese: "中文",
+        backToNotes: "Back to notes",
+        backTo: (name) => `Back to ${name}`,
+        previous: "Previous",
+        next: "Next",
+        pager: (name) => `The issues before and after this one in ${name}`,
+        notFound: ["No such note", "There is no note at this address."],
+        loadFailed: "Could not load",
+        scriptsMissing: "The page’s scripts did not load completely. ",
+        postMissing: "This note did not load. ",
+        hintFile: "Open the site through a local static server, not by double-clicking the HTML file.",
+        hintRetry: "Please refresh in a moment.",
+      }
+    : {
+        status: { writing: "在写", planned: "计划" },
+        latest: "最新",
+        noPosts: "还没有笔记。",
+        chinese: "中文",
+        backToNotes: "返回笔记",
+        backTo: (name) => `返回${name}`,
+        previous: "上一篇",
+        next: "下一篇",
+        pager: (name) => `${name}的前后两篇`,
+        notFound: ["找不到这篇笔记", "这个地址没有对应的笔记。"],
+        loadFailed: "加载失败",
+        scriptsMissing: "页面脚本没有载入完整。",
+        postMissing: "这篇笔记没有加载成功。",
+        hintFile: "请用本地静态服务器打开站点，不要直接双击 HTML 文件。",
+        hintRetry: "请稍后刷新再试。",
+      };
 
   function formatDate(iso) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
@@ -9,7 +49,7 @@
     return `${match[1]}.${match[2]}.${match[3]}`;
   }
 
-  const STATUS = { writing: "在写", planned: "计划" };
+  const STATUS = TEXT.status;
 
   function pad2(no) {
     return String(no).padStart(2, "0");
@@ -19,23 +59,58 @@
     return (root.SITE_SERIES || {})[key] || null;
   }
 
-  // "第 2 周" where the series has a unit, "02" where it does not.
+  // "第 2 周" where the series has a unit, "02" where it does not. In English, "Week 2".
   function issueLabel(series, no) {
+    if (EN) return series.unitEn ? `${series.unitEn} ${no}` : pad2(no);
     return series.unit ? `第 ${no} ${series.unit}` : pad2(no);
   }
 
+  function seriesName(series) {
+    return (EN && series.titleEn) || series.title;
+  }
+
   function seriesUrl(series) {
-    return new URL(series.path, siteRoot).href;
+    return new URL(series.path, langRoot).href;
+  }
+
+  // A post has an English page only if its entry carries en. Without one, the English pages
+  // show its Chinese title and link to the Chinese page.
+  function hasPage(post) {
+    return !EN || Boolean(post.en);
   }
 
   function postUrl(post) {
-    return new URL(`blog/${encodeURIComponent(post.slug)}/`, siteRoot).href;
+    const root = EN && post.en ? langRoot : siteRoot;
+    return new URL(`blog/${encodeURIComponent(post.slug)}/`, root).href;
+  }
+
+  // Title and summary of a post as this page shows them. foreign marks Chinese text on an English page.
+  function view(post) {
+    if (EN && post.en) return { title: post.en.title, summary: post.en.summary, foreign: false };
+    return { title: post.title, summary: post.summary, foreign: EN };
+  }
+
+  // A planned issue: the English fields on the English pages, the Chinese ones where they are missing.
+  function planView(item) {
+    if (!EN) return { title: item.title, note: item.note, titleForeign: false, noteForeign: false };
+    return {
+      title: item.titleEn || item.title,
+      note: item.noteEn || item.note,
+      titleForeign: !item.titleEn && Boolean(item.title),
+      noteForeign: !item.noteEn && Boolean(item.note),
+    };
   }
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
     if (text != null) node.textContent = text;
+    return node;
+  }
+
+  // Chinese text set on an English page says so, for fonts, line breaking and screen readers.
+  function zh(node) {
+    node.lang = "zh-CN";
     return node;
   }
 
@@ -50,8 +125,11 @@
   function seriesEntries(key) {
     const series = seriesOf(key);
     if (!series) return [];
-    const published = seriesPosts(key).map((post) => ({ no: post.no, title: post.title, note: post.summary, post }));
-    const planned = (series.planned || []).map((item) => ({ no: item.no, title: item.title, note: item.note, status: item.status }));
+    const published = seriesPosts(key).map((post) => {
+      const shown = view(post);
+      return { no: post.no, title: shown.title, note: shown.summary, titleForeign: shown.foreign, noteForeign: shown.foreign, post };
+    });
+    const planned = (series.planned || []).map((item) => ({ no: item.no, status: item.status, ...planView(item) }));
     return published.concat(planned).sort((a, b) => a.no - b.no);
   }
 
@@ -66,29 +144,38 @@
   }
 
   function renderList(list) {
-    const base = list.getAttribute("data-base") || "./";
     // data-posts="notes" leaves out the posts that belong to a series.
     const notesOnly = list.getAttribute("data-posts") === "notes";
     const posts = sortedPosts().filter((post) => !(notesOnly && post.series));
     list.replaceChildren();
     if (!posts.length) {
       const item = document.createElement("li");
-      item.textContent = "还没有笔记。";
+      item.textContent = TEXT.noPosts;
       list.append(item);
       return;
     }
     for (const post of posts) {
       const item = document.createElement("li");
       const link = document.createElement("a");
-      link.href = `${base}${encodeURIComponent(post.slug)}/`;
+      link.href = postUrl(post);
+      const shown = view(post);
       const meta = el("span", "index-meta");
       const time = document.createElement("time");
       time.dateTime = post.date;
       time.textContent = formatDate(post.date);
       meta.append(time);
       const series = seriesOf(post.series);
-      if (series) meta.append(el("span", "index-tag", `${series.title} · ${pad2(post.no)}`));
-      link.append(meta, el("span", "index-title", post.title), el("span", "index-summary", post.summary));
+      if (series) meta.append(el("span", "index-tag", `${seriesName(series)} · ${pad2(post.no)}`));
+      const title = el("span", "index-title", shown.title);
+      const summary = el("span", "index-summary", shown.summary);
+      if (shown.foreign) {
+        // No English version: the Chinese title, marked, and the link goes to the Chinese page.
+        meta.append(zh(el("span", "index-tag", TEXT.chinese)));
+        link.hreflang = "zh-CN";
+        zh(title);
+        zh(summary);
+      }
+      link.append(meta, title, summary);
       item.append(link);
       list.append(item);
     }
@@ -108,13 +195,24 @@
       const body = el("span", "toc-body");
       // An issue that has no title yet shows its status where the title would be.
       const untitled = !entry.title;
-      body.append(el("span", untitled ? "toc-title is-untitled" : "toc-title", untitled ? STATUS[entry.status] || "" : entry.title));
-      if (entry.note) body.append(el("span", "toc-note", entry.note));
+      const title = el("span", untitled ? "toc-title is-untitled" : "toc-title", untitled ? STATUS[entry.status] || "" : entry.title);
+      if (entry.titleForeign) zh(title);
+      body.append(title);
+      if (entry.note) {
+        const note = el("span", "toc-note", entry.note);
+        if (entry.noteForeign) zh(note);
+        body.append(note);
+      }
+      // A published issue with no English version leads to the Chinese page.
+      if (entry.post && !hasPage(entry.post)) row.hreflang = "zh-CN";
       row.append(el("span", "toc-no", pad2(entry.no)), body);
       if (entry.post) {
-        const time = el("time", "toc-status", formatDate(entry.post.date));
+        const status = el("span", "toc-status");
+        const time = el("time", null, formatDate(entry.post.date));
         time.dateTime = entry.post.date;
-        row.append(time);
+        status.append(time);
+        if (!hasPage(entry.post)) status.append(zh(el("span", "index-tag", TEXT.chinese)));
+        row.append(status);
       } else if (!untitled) {
         row.append(el("span", "toc-status", STATUS[entry.status] || ""));
       }
@@ -130,18 +228,28 @@
     if (!series) return;
     const published = seriesPosts(key);
     let lead = "";
-    let text = "";
+    let label = "";
+    let title = "";
+    let foreign = false;
     if (published.length) {
       const post = published[published.length - 1];
-      lead = "最新";
-      text = `${issueLabel(series, post.no)} · ${post.title}`;
+      const shown = view(post);
+      lead = TEXT.latest;
+      label = issueLabel(series, post.no);
+      title = shown.title;
+      foreign = shown.foreign;
     } else {
       const next = (series.planned || []).slice().sort((a, b) => a.no - b.no)[0];
       if (!next) return;
+      const shown = planView(next);
       lead = STATUS[next.status] || "";
-      text = next.title ? `${issueLabel(series, next.no)} · ${next.title}` : issueLabel(series, next.no);
+      label = issueLabel(series, next.no);
+      title = shown.title;
+      foreign = shown.titleForeign;
     }
-    slot.replaceChildren(el("span", "card-lead", lead), document.createTextNode(text));
+    const parts = [el("span", "card-lead", lead), document.createTextNode(title ? `${label} · ` : label)];
+    if (title) parts.push(foreign ? zh(el("span", null, title)) : document.createTextNode(title));
+    slot.replaceChildren(...parts);
   }
 
   function formatNumber(value) {
@@ -195,23 +303,21 @@
     const back = document.createElement("p");
     back.className = "back";
     const link = document.createElement("a");
-    link.href = new URL("blog/", siteRoot).href;
-    link.textContent = "返回笔记";
+    link.href = new URL("blog/", langRoot).href;
+    link.textContent = TEXT.backToNotes;
     back.append(link);
     article.append(title, paragraph, back);
     article.setAttribute("aria-busy", "false");
   }
 
   function showNotFound(article) {
-    showMessage(article, "找不到这篇笔记", "这个地址没有对应的笔记。");
+    showMessage(article, TEXT.notFound[0], TEXT.notFound[1]);
   }
 
   function showLoadError(article, reason) {
     // fetch() cannot read file:// pages, so opening the HTML directly always ends up here.
-    const hint = location.protocol === "file:"
-      ? "请用本地静态服务器打开站点，不要直接双击 HTML 文件。"
-      : "请稍后刷新再试。";
-    showMessage(article, "加载失败", reason + hint);
+    const hint = location.protocol === "file:" ? TEXT.hintFile : TEXT.hintRetry;
+    showMessage(article, TEXT.loadFailed, reason + hint);
   }
 
   // A display formula or a table wider than the column scrolls sideways. Only those get a tab stop,
@@ -253,19 +359,25 @@
     }
     const manifest = (root.SITE_POSTS || []).find((post) => post.slug === slug);
     if (!fixedSlug) {
-      if (!Array.isArray(root.SITE_POSTS)) showLoadError(article, "页面脚本没有载入完整。");
+      if (!Array.isArray(root.SITE_POSTS)) showLoadError(article, TEXT.scriptsMissing);
       else if (manifest) location.replace(new URL(`blog/${slug}/`, siteRoot).href + location.hash);
       else showNotFound(article);
       return;
     }
     if (typeof root.renderMarkdown !== "function" || typeof root.splitFrontMatter !== "function") {
-      showLoadError(article, "页面脚本没有载入完整。");
+      showLoadError(article, TEXT.scriptsMissing);
+      return;
+    }
+    // An English page exists only for a post that has an English version.
+    if (EN && !(manifest && manifest.en)) {
+      showNotFound(article);
       return;
     }
     article.setAttribute("aria-busy", "true");
     try {
       const early = root.SITE_POST_FETCH;
-      const response = await (early && early.slug === slug ? early.response : fetch(new URL(`posts/${slug}.md`, siteRoot)));
+      const source = EN ? `posts/en/${slug}.md` : `posts/${slug}.md`;
+      const response = await (early && early.slug === slug ? early.response : fetch(new URL(source, siteRoot)));
       if (response.status === 404) {
         showNotFound(article);
         return;
@@ -275,7 +387,7 @@
       const { meta, body } = root.splitFrontMatter(raw);
       // js/posts.js wins over the front matter: the generated <title> and share tags come from it.
       const info = manifest || {};
-      const title = info.title || meta.title || slug;
+      const title = (EN ? info.en.title : info.title) || meta.title || slug;
       const date = info.date || (/^\d{4}-\d{2}-\d{2}$/.test(meta.date || "") ? meta.date : "");
       document.title = `${title} · Yihua Liu`;
       article.replaceChildren();
@@ -284,7 +396,7 @@
       header.className = "page-head";
       if (series) {
         const kicker = el("p", "kicker");
-        const home = el("a", null, series.title);
+        const home = el("a", null, seriesName(series));
         home.href = seriesUrl(series);
         kicker.append(home, document.createTextNode(` · ${issueLabel(series, info.no)}`));
         header.append(kicker);
@@ -305,24 +417,24 @@
       const back = document.createElement("p");
       back.className = "back";
       const link = document.createElement("a");
-      link.href = series ? seriesUrl(series) : new URL("blog/", siteRoot).href;
-      link.textContent = series ? `返回${series.title}` : "返回笔记";
+      link.href = series ? seriesUrl(series) : new URL("blog/", langRoot).href;
+      link.textContent = series ? TEXT.backTo(seriesName(series)) : TEXT.backToNotes;
       back.append(link);
       if (series) {
-        // The issue before and the issue after, among the published ones.
-        const siblings = seriesPosts(info.series);
+        // The issue before and the issue after, among the published ones that have a page in this language.
+        const siblings = seriesPosts(info.series).filter(hasPage);
         const at = siblings.findIndex((post) => post.slug === slug);
         const around = [
-          { post: siblings[at - 1], cls: "post-prev", lead: "上一篇" },
-          { post: siblings[at + 1], cls: "post-next", lead: "下一篇" },
+          { post: siblings[at - 1], cls: "post-prev", lead: TEXT.previous },
+          { post: siblings[at + 1], cls: "post-next", lead: TEXT.next },
         ].filter((side) => at !== -1 && side.post);
         if (around.length) {
           const pager = el("nav", "post-nav");
-          pager.setAttribute("aria-label", `${series.title}的前后两篇`);
+          pager.setAttribute("aria-label", TEXT.pager(seriesName(series)));
           for (const side of around) {
             const step = el("a", side.cls);
             step.href = postUrl(side.post);
-            step.append(el("span", "post-nav-lead", `${side.lead} · ${issueLabel(series, side.post.no)}`), el("span", "post-nav-title", side.post.title));
+            step.append(el("span", "post-nav-lead", `${side.lead} · ${issueLabel(series, side.post.no)}`), el("span", "post-nav-title", view(side.post).title));
             pager.append(step);
           }
           article.append(header, prose, pager, back);
@@ -335,7 +447,7 @@
       article.setAttribute("aria-busy", "false");
       watchWideMath(prose);
     } catch (err) {
-      showLoadError(article, "这篇笔记没有加载成功。");
+      showLoadError(article, TEXT.postMissing);
     }
   }
 

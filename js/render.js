@@ -29,8 +29,12 @@
       if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href)) return full;
       const match = href.match(/(?:^|\/)([a-z0-9-]+)\.md(#[^"]*)?$/);
       if (!match) return full;
-      // Posts live at blog/<slug>/, so another post is a sibling directory.
-      return `href="../${match[1]}/${match[2] || ""}"`;
+      // Posts live at blog/<slug>/, so another post is a sibling directory. On an English page,
+      // a post that has no English version is in the Chinese set, three levels up.
+      const english = /^en\b/i.test(document.documentElement.lang || "");
+      const target = (root.SITE_POSTS || []).find((post) => post.slug === match[1]);
+      const up = english && target && !target.en ? "../../../blog/" : "../";
+      return `href="${up}${match[1]}/${match[2] || ""}"`;
     });
   }
 
