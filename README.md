@@ -47,6 +47,8 @@ python3 -m http.server 8080
 3. 运行 `node tools/build-posts.mjs`（Node 18+，没有依赖），生成 `blog/your-slug/index.html`。
 4. 把这三样一起提交。
 
+还没写完、只想把链接给少数人看的文章，在那一条上加 `unlisted: true`。页面照样生成，`<head>` 里多一行 `<meta name="robots" content="noindex, nofollow">`；首页、笔记列表、栏目目录、首页卡片、账本和上下篇都不列它，只有知道地址的人能打开。它不占期号，也不能带 `ledger`（写了生成脚本会报错）。正式发布时删掉 `unlisted`，栏目文章再补上 `no`。
+
 列表按 `date` 从新到旧排列。行内公式用一对 `$`，独立成行的公式用一对 `$$`。文章采用 CC BY-NC 4.0，见下面的版权说明。
 
 正文里可以用表格（GFM 写法，窄屏会横向滚动）、`<figure>` 配 `<figcaption>`、`<details>`。文章自己的图放在 `assets/img/` 下，按文章建子目录。
@@ -193,7 +195,7 @@ ledger: { model: "模型名", gpu: "卡", precision: "fp16", unit: "tok/s", boun
 
 Static personal site for Yihua Liu (Louiva2). Posts are Markdown files rendered in the browser, with LaTeX via vendored KaTeX. Viewing needs no build step. Each post also gets a generated page at `blog/<slug>/` that carries its title and share-preview tags: after adding the Markdown file and its entry in `js/posts.js`, run `node tools/build-posts.mjs` (Node 18+, no dependencies) and commit the output. Their absolute URLs come from `BASE_URL` in that script; the home, notes and projects pages hard-code theirs.
 
-The site has two series, `weekly/` and `roofline/`. A post joins one by adding `series` and `no` to its entry in `js/posts.js`; issues not yet written live in `SITE_SERIES.<series>.planned` in the same file and need no Markdown. A roofline post with a `ledger` field adds a row to the ledger table on `roofline/`. The six illustrations in `assets/img/` have fixed names and sizes and must have a pure white ground, since they are multiplied onto the page. The site mark is `favicon.svg`, also shown beside the name in the header; `favicon.ico`, `apple-touch-icon.png` and the share-preview picture `assets/img/og.jpg` are rendered from it.
+The site has two series, `weekly/` and `roofline/`. A post joins one by adding `series` and `no` to its entry in `js/posts.js`; issues not yet written live in `SITE_SERIES.<series>.planned` in the same file and need no Markdown. A roofline post with a `ledger` field adds a row to the ledger table on `roofline/`. A post with `unlisted: true` still gets its pages, marked `noindex, nofollow`, but no list, table of contents, card, ledger or pager shows it; it takes no `no` and no `ledger` until it is published. The six illustrations in `assets/img/` have fixed names and sizes and must have a pure white ground, since they are multiplied onto the page. The site mark is `favicon.svg`, also shown beside the name in the header; `favicon.ico`, `apple-touch-icon.png` and the share-preview picture `assets/img/og.jpg` are rendered from it.
 
 The English pages are a second set under `en/`, one for each Chinese page, reading the same `js/posts.js`. A post gets an English page at `en/blog/<slug>/` when its entry carries `en: { title, summary }` and its translation is at `posts/en/<slug>.md`; a post without one shows its Chinese title on the English lists and links to the Chinese page. The English names of the series and of the planned issues are the `titleEn`, `deckEn`, `unitEn` and `noteEn` fields. The English share-preview picture is `assets/img/og-en.jpg`.
 

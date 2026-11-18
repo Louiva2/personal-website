@@ -8,6 +8,9 @@
 // tools/post-template.en.html; its English Markdown is posts/en/<slug>.md. The two pages point at
 // each other. The English names and decks of the series are checked against the pages under en/.
 //
+// A post marked unlisted: true still gets its pages, with <meta name="robots" content="noindex, nofollow">
+// in the head; js/site.js leaves it out of every list. It takes no issue number and no ledger.
+//
 //   node tools/build-posts.mjs           write the pages (Node 18+, no dependencies)
 //   node tools/build-posts.mjs --check   write nothing; exit 1 if a page is missing or stale
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -116,6 +119,17 @@ function readSite() {
       }
       if (!existsSync(join(repo, "posts", "en", `${post.slug}.md`))) fail(`${where}: en is set but posts/en/${post.slug}.md does not exist`);
     }
+    if (post.unlisted !== undefined && post.unlisted !== true) fail(`${where}: unlisted must be true or left out`);
+    if (post.unlisted) {
+      // Not in any list yet, so it holds no issue number and adds no ledger row. To publish it,
+      // delete unlisted and give it a no.
+      if (post.no !== undefined) fail(`${where}: an unlisted post takes no issue number; drop no`);
+      if (post.ledger !== undefined) fail(`${where}: an unlisted post takes no ledger`);
+      if (post.series !== undefined && !Object.hasOwn(series, post.series)) {
+        fail(`${where}: series must be one of ${Object.keys(series).join(", ") || "(none defined)"}`);
+      }
+      continue;
+    }
     if (post.series === undefined) {
       if (post.no !== undefined) fail(`${where}: no is set but series is not`);
       if (post.ledger !== undefined) fail(`${where}: ledger is set but series is not`);
@@ -192,14 +206,20 @@ function renderPage(lang, template, post) {
   };
   const current = NAV.includes(post.series) ? post.series : "blog";
   // Raw placeholders, written into the page as they are: {{{nav:<item>}}} is the attribute for
-  // the current nav item, or nothing; {{{alternates}}} and {{{lang}}} are the two functions above.
-  const raw = { alternates: alternates(post), lang: otherLanguage(lang, post) };
+  // the current nav item, or nothing; {{{alternates}}} and {{{lang}}} are the two functions above;
+  // {{{robots}}} keeps an unlisted post out of search engines. Empty placeholders on a line of
+  // their own take the line with them.
+  const raw = {
+    alternates: alternates(post),
+    robots: post.unlisted ? '<meta name="robots" content="noindex, nofollow">' : "",
+    lang: otherLanguage(lang, post),
+  };
   return template
     .replace(/\{\{\{nav:([a-z]+)\}\}\}/g, (_, item) => {
       if (!NAV.includes(item)) fail(`${set.template}: unknown nav item {{{nav:${item}}}}`);
       return item === current ? ' aria-current="page"' : "";
     })
-    .replace(/^[ \t]*\{\{\{alternates\}\}\}\n/m, () => (raw.alternates ? `  ${raw.alternates}\n` : ""))
+    .replace(/^[ \t]*\{\{\{(alternates|robots)\}\}\}\n/gm, (_, key) => (raw[key] ? `  ${raw[key]}\n` : ""))
     .replace(/\{\{\{(\w+)\}\}\}/g, (_, key) => {
       if (!(key in raw)) fail(`${set.template}: unknown placeholder {{{${key}}}}`);
       return raw[key];
